@@ -1,0 +1,204 @@
+<div class="plans-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Planes y Precios</h1>
+        <p class="page-subtitle">
+          Elige el plan perfecto para tu negocio
+          @if (currentPlan) {
+            <span class="current-plan-badge">
+              Plan actual: {{ currentPlan.name }}
+            </span>
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Billing Interval Toggle -->
+  <div class="billing-toggle-section">
+    <div class="billing-toggle-card">
+      <div class="toggle-header">
+        <span class="toggle-label">Frecuencia de pago</span>
+        <div class="toggle-switch">
+          <span class="toggle-option" [class.active]="billingInterval === 'month'">Mensual</span>
+          <div class="toggle-container">
+            <input
+              type="checkbox"
+              id="billing-toggle"
+              class="toggle-input"
+              [checked]="billingInterval === 'year'"
+              (change)="toggleBillingInterval()"
+            />
+            <label for="billing-toggle" class="toggle-slider"></label>
+          </div>
+          <span class="toggle-option" [class.active]="billingInterval === 'year'">
+            Anual
+            <span class="discount-badge">Ahorra 20%</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <app-loading-spinner message="Cargando planes..."></app-loading-spinner>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <!-- Plans Grid -->
+    <div class="plans-container">
+      <div class="plans-grid">
+        @for (plan of plans; track plan.id) {
+          <div class="plan-card" [class.popular]="plan.is_popular" [class.current]="plan.is_current">
+            @if (plan.is_popular) {
+              <div class="plan-badge">MÁS POPULAR</div>
+            }
+            @if (plan.is_current) {
+              <div class="current-badge">TU PLAN</div>
+            }
+            
+            <div class="plan-header">
+              <h3 class="plan-name">{{ plan.name }}</h3>
+              <p class="plan-description">{{ plan.description }}</p>
+              
+              <div class="plan-price">
+                <span class="price-amount">{{ plan.price | currency:plan.currency }}</span>
+                <span class="price-interval">
+                  /{{ billingInterval === 'month' ? 'mes' : 'año' }}
+                </span>
+              </div>
+              
+              @if (billingInterval === 'year') {
+                <div class="annual-savings">
+                  <i class="fa fa-piggy-bank me-2"></i>
+                  Ahorras {{ getAnnualSavings(plan) | currency:plan.currency }}
+                </div>
+              }
+            </div>
+            
+            <div class="plan-features">
+              <h4 class="features-title">Qué incluye:</h4>
+              <ul class="features-list">
+                @for (feature of plan.features.included; track feature) {
+                  <li class="feature-item included">
+                    <i class="fa fa-check-circle me-2"></i>
+                    {{ feature }}
+                  </li>
+                }
+                @for (feature of plan.features.not_included; track feature) {
+                  <li class="feature-item not-included">
+                    <i class="fa fa-times-circle me-2"></i>
+                    {{ feature }}
+                  </li>
+                }
+              </ul>
+            </div>
+            
+            <div class="plan-limits">
+              <h4 class="limits-title">Límites:</h4>
+              <div class="limits-grid">
+                <div class="limit-item">
+                  <i class="fa fa-box me-2"></i>
+                  {{ plan.limits.max_products === 9999 ? 'Ilimitados' : plan.limits.max_products }} productos
+                </div>
+                <div class="limit-item">
+                  <i class="fa fa-layer-group me-2"></i>
+                  {{ plan.limits.max_categories === 999 ? 'Ilimitadas' : plan.limits.max_categories }} categorías
+                </div>
+                <div class="limit-item">
+                  <i class="fa fa-qrcode me-2"></i>
+                  {{ plan.limits.max_qr_codes === 999 ? 'Ilimitados' : plan.limits.max_qr_codes }} códigos QR
+                </div>
+                <div class="limit-item">
+                  <i class="fa fa-users me-2"></i>
+                  {{ plan.limits.max_staff_users === 999 ? 'Ilimitados' : plan.limits.max_staff_users }} usuarios
+                </div>
+              </div>
+            </div>
+            
+            <div class="plan-footer">
+              @if (plan.is_current) {
+                <button class="btn btn-outline" disabled>
+                  <i class="fa fa-check me-2"></i>
+                  Plan Actual
+                </button>
+              } @else {
+                <button 
+                  class="btn btn-primary" 
+                  (click)="selectPlan(plan)"
+                  [class.btn-success]="plan.is_popular">
+                  @if (isPlanSufficient(plan)) {
+                    <span>Seleccionar Plan</span>
+                  } @else {
+                    <span>Actualizar Plan</span>
+                  }
+                </button>
+              }
+              
+              @if (!isPlanSufficient(plan) && !plan.is_current) {
+                <div class="insufficient-warning">
+                  <i class="fa fa-exclamation-triangle me-2"></i>
+                  Tu uso actual excede los límites
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+      <div class="faq-header">
+        <h2 class="faq-title">Preguntas Frecuentes</h2>
+        <p class="faq-subtitle">Encuentra respuestas a las dudas más comunes</p>
+      </div>
+      
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4 class="faq-question">
+            <i class="fa fa-question-circle me-2"></i>
+            ¿Puedo cambiar de plan en cualquier momento?
+          </h4>
+          <p class="faq-answer">
+            Sí, puedes cambiar entre planes en cualquier momento. La diferencia se prorrateará en tu próxima factura.
+          </p>
+        </div>
+        
+        <div class="faq-item">
+          <h4 class="faq-question">
+            <i class="fa fa-question-circle me-2"></i>
+            ¿Hay cargos por cancelación?
+          </h4>
+          <p class="faq-answer">
+            No hay cargos por cancelación. Puedes cancelar tu suscripción en cualquier momento y conservarás el acceso hasta el final del período facturado.
+          </p>
+        </div>
+        
+        <div class="faq-item">
+          <h4 class="faq-question">
+            <i class="fa fa-question-circle me-2"></i>
+            ¿Qué métodos de pago aceptan?
+          </h4>
+          <p class="faq-answer">
+            Aceptamos tarjetas de crédito/débito (Visa, MasterCard, American Express) y PayPal. Las transferencias bancarias están disponibles para planes anuales.
+          </p>
+        </div>
+        
+        <div class="faq-item">
+          <h4 class="faq-question">
+            <i class="fa fa-question-circle me-2"></i>
+            ¿Ofrecen prueba gratuita?
+          </h4>
+          <p class="faq-answer">
+            Sí, todos los planes incluyen 14 días de prueba gratuita. No se requiere tarjeta de crédito para comenzar.
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

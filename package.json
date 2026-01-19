@@ -2,11 +2,12 @@
   "name": "menuqr-pro",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "mock:api": "json-server --watch db.json --port 3000",
+    "dev": "concurrently \"ng serve\" \"npm run mock:api\""
   },
   "private": true,
   "dependencies": {
@@ -17,8 +18,19 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@auth0/angular-jwt": "^5.2.0",
+    "@ngx-translate/core": "^15.0.0",
+    "@ngx-translate/http-loader": "^8.0.0",
+    "@types/uuid": "^11.0.0",
+    "bootstrap": "^5.3.8",
+    "font-awesome": "^4.7.0",
+    "ngx-dropzone": "^3.1.0",
+    "ngx-qrcode": "^0.1.0-rc.1",
+    "ngx-spinner": "^17.0.0",
+    "ngx-toastr": "^19.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "uuid": "^13.0.0",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
@@ -26,7 +38,9 @@
     "@angular/cli": "^19.2.5",
     "@angular/compiler-cli": "^19.2.0",
     "@types/jasmine": "~5.1.0",
+    "concurrently": "^9.2.1",
     "jasmine-core": "~5.6.0",
+    "json-server": "^1.0.0-beta.3",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",

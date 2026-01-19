@@ -1,0 +1,161 @@
+<div class="qr-codes-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div>
+                <h1 class="page-title">Códigos QR</h1>
+                <p class="page-subtitle">
+                    Gestiona los códigos QR de tus mesas y ubicaciones
+                    @if (planLimits) {
+                    <span class="usage-badge">
+                        {{ qrCodes.length }} / {{ planLimits.numeric?.max_qr_codes || planLimits.max_qr_codes }}
+                    </span>
+                    }
+                </p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" routerLink="/business/qr-codes/new">
+                    <i class="fa fa-plus me-2"></i>
+                    Nuevo QR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-card">
+        <div class="filters-content">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Buscar códigos QR</label>
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Nombre del QR..." [(ngModel)]="searchTerm"
+                            (input)="filterQRCodes()" />
+                        <button class="search-button" type="button">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Codes Grid -->
+    <div class="qr-codes-container">
+        @if (isLoading) {
+        <div class="loading-container">
+            <app-loading-spinner message="Cargando códigos QR..."></app-loading-spinner>
+        </div>
+        }
+
+        @if (!isLoading && filteredQRCodes.length === 0) {
+        <div class="empty-container">
+            <app-empty-state icon="qrcode"
+                [title]="qrCodes.length === 0 ? 'Aún no tienes códigos QR' : 'No hay resultados'"
+                [description]="qrCodes.length === 0 ? 'Genera tu primer código QR para que los clientes accedan a tu menú' : 'Intenta con otros términos de búsqueda'"
+                actionText="Generar primer QR" actionIcon="plus"
+                (onAction)="router.navigate(['/business/qr-codes/new'])">
+            </app-empty-state>
+        </div>
+        }
+
+        @if (!isLoading && filteredQRCodes.length > 0) {
+        <div class="qr-codes-grid">
+            @for (qr of paginatedQRCodes; track qr.id) {
+            <div class="qr-code-card">
+                <div class="qr-code-header">
+                    <div class="qr-code-info">
+                        <h3 class="qr-code-title">{{ qr.name }}</h3>
+                        <p class="qr-code-slug">{{ qr.slug }}</p>
+                    </div>
+                    <div class="qr-code-actions">
+                        <button class="btn-action btn-download" (click)="downloadQR(qr)" title="Descargar QR">
+                            <i class="fa fa-download"></i>
+                        </button>
+                        <button class="btn-action btn-copy" (click)="copyURL(qr)" title="Copiar URL">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="qr-code-preview">
+                    <div class="qr-code-placeholder">
+                        <div class="qr-code-icon">
+                            <i class="fa fa-qrcode"></i>
+                        </div>
+                        <div class="qr-code-color" [style.backgroundColor]="qr.qr_color"></div>
+                        <div class="qr-code-logo" [class.hidden]="!qr.logo_enabled">
+                            <i class="fa fa-store"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="qr-code-content">
+                    <div class="qr-code-stats">
+                        <div class="stat-item">
+                            <i class="fa fa-eye me-2"></i>
+                            <div>
+                                <div class="stat-value">{{ qr.scan_count }}</div>
+                                <div class="stat-label">Escaneos</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <i class="fa fa-calendar me-2"></i>
+                            <div>
+                                <div class="stat-value">{{ getLastScannedText(qr) }}</div>
+                                <div class="stat-label">Último uso</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="qr-code-footer">
+                        <!-- En la línea donde se muestra la URL -->
+                        <div class="qr-code-url">
+                            <i class="fa fa-link me-1"></i>
+                            <a [href]="getQRUrl(qr)" target="_blank" class="url-link">
+                                {{ getQRUrl(qr) | slice:0:30 }}{{ getQRUrl(qr).length > 30 ? '...' : '' }}
+                            </a>
+                        </div>
+                        <div class="qr-code-actions-bottom">
+                            <button class="btn-action btn-edit" [routerLink]="['/business/qr-codes', qr.id, 'edit']"
+                                title="Editar QR">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button class="btn-action btn-delete" (click)="deleteQR(qr)" title="Eliminar QR">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (filteredQRCodes.length > 0 && !isLoading) {
+    <div class="pagination-container">
+        <nav class="pagination">
+            <button class="pagination-button prev" [disabled]="currentPage === 1" (click)="prevPage()">
+                <i class="fa fa-chevron-left me-1"></i>
+                Anterior
+            </button>
+
+            <div class="pagination-pages">
+                @for (page of getPageNumbers(); track page) {
+                <button class="pagination-page" [class.active]="page === currentPage" (click)="goToPage(page)">
+                    {{ page }}
+                </button>
+                }
+            </div>
+
+            <button class="pagination-button next" [disabled]="currentPage === totalPages" (click)="nextPage()">
+                Siguiente
+                <i class="fa fa-chevron-right ms-1"></i>
+            </button>
+        </nav>
+    </div>
+    }
+</div>

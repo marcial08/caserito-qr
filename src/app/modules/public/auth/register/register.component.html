@@ -1,0 +1,254 @@
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100 justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+            <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+                <!-- Header con gradiente -->
+                <div class="card-header register-header py-4 d-flex flex-column align-items-center">
+                    <!-- Logo -->
+                    <div class="logo-container mb-3">
+                        <img src="/assets/images/logo.png" alt="MenuQR Pro" class="logo-img">
+                    </div>
+
+                    <!-- Título y subtítulo -->
+                    <h2 class="fw-bold mb-1">Crea tu Cuenta</h2>
+                    <p class="mb-0 text-light-subtle">Empieza a gestionar tu menú digital en minutos</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+                        <!-- Información Personal -->
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-primary mb-3">
+                                <i class="fa fa-user me-2"></i>
+                                Información Personal
+                            </h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Nombre Completo *</label>
+                                    <input type="text" class="form-control rounded-2" formControlName="name"
+                                        placeholder="Tu nombre completo"
+                                        [class.is-invalid]="getFieldErrors('name').length > 0">
+                                    @for (error of getFieldErrors('name'); track error) {
+                                    <div class="invalid-feedback d-block">
+                                        {{error}}
+                                    </div>
+                                    }
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Email *</label>
+                                    <input type="email" class="form-control rounded-2" formControlName="email"
+                                        placeholder="tu@restaurante.com"
+                                        [class.is-invalid]="getFieldErrors('email').length > 0">
+                                    @for (error of getFieldErrors('email'); track error) {
+                                    <div class="invalid-feedback d-block">
+                                        {{error}}
+                                    </div>
+                                    }
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Teléfono</label>
+                                    <input type="tel" class="form-control rounded-2" formControlName="phone"
+                                        placeholder="612345678" [class.is-invalid]="getFieldErrors('phone').length > 0">
+                                    @for (error of getFieldErrors('phone'); track error) {
+                                    <div class="invalid-feedback d-block">
+                                        {{error}}
+                                    </div>
+                                    }
+                                    <small class="text-muted">Opcional, pero recomendado para soporte</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del Negocio -->
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-primary mb-3">
+                                <i class="fa fa-store me-2"></i>
+                                Información del Negocio
+                            </h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-medium">Nombre del Negocio *</label>
+                                    <input type="text" class="form-control rounded-2" formControlName="businessName"
+                                        placeholder="Ej: Mi Restaurante S.L."
+                                        [class.is-invalid]="getFieldErrors('businessName').length > 0">
+                                    @for (error of getFieldErrors('businessName'); track error) {
+                                    <div class="invalid-feedback d-block">
+                                        {{error}}
+                                    </div>
+                                    }
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-medium">Tipo de Negocio *</label>
+                                    <select class="form-control rounded-2" formControlName="businessType"
+                                        [class.is-invalid]="getFieldErrors('businessType').length > 0">
+                                        <option value="restaurant">Restaurante</option>
+                                        <option value="cafe">Cafetería</option>
+                                        <option value="bar">Bar</option>
+                                        <option value="pizzeria">Pizzería</option>
+                                        <option value="bakery">Panadería</option>
+                                        <option value="foodtruck">Food Truck</option>
+                                        <option value="other">Otro</option>
+                                    </select>
+                                    @for (error of getFieldErrors('businessType'); track error) {
+                                    <div class="invalid-feedback d-block">
+                                        {{error}}
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contraseña -->
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-primary mb-3">
+                                <i class="fa fa-lock me-2"></i>
+                                Seguridad
+                            </h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Contraseña *</label>
+                                    <div class="input-group">
+                                        <input [type]="passwordVisible ? 'text' : 'password'"
+                                            class="form-control rounded-start-2" formControlName="password"
+                                            placeholder="Mínimo 8 caracteres"
+                                            [class.is-invalid]="getFieldErrors('password').length > 0">
+                                        <button class="btn btn-outline-secondary rounded-end-2" type="button"
+                                            (click)="togglePasswordVisibility('password')">
+                                            <i class="fa" [class.fa-eye]="!passwordVisible"
+                                                [class.fa-eye-slash]="passwordVisible"></i>
+                                        </button>
+                                    </div>
+                                    @for (error of getFieldErrors('password'); track error) {
+                                    <div class="invalid-feedback d-block">
+                                        {{error}}
+                                    </div>
+                                    }
+
+                                    <!-- Indicador de fortaleza -->
+                                    <div class="mt-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="text-muted">Fortaleza:</small>
+                                            <small class="fw-medium" [class]="getPasswordStrengthClass()">
+                                                {{getPasswordStrengthText()}}
+                                            </small>
+                                        </div>
+                                        <div class="progress" style="height: 4px;">
+                                            <div class="progress-bar" [class]="getPasswordStrengthClass()"
+                                                [style.width.%]="getPasswordStrengthPercentage()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Confirmar Contraseña *</label>
+                                    <div class="input-group">
+                                        <input [type]="confirmPasswordVisible ? 'text' : 'password'"
+                                            class="form-control rounded-start-2" formControlName="confirmPassword"
+                                            placeholder="Repite tu contraseña"
+                                            [class.is-invalid]="getFieldErrors('confirmPassword').length > 0">
+                                        <button class="btn btn-outline-secondary rounded-end-2" type="button"
+                                            (click)="togglePasswordVisibility('confirmPassword')">
+                                            <i class="fa" [class.fa-eye]="!confirmPasswordVisible"
+                                                [class.fa-eye-slash]="confirmPasswordVisible"></i>
+                                        </button>
+                                    </div>
+                                    @for (error of getFieldErrors('confirmPassword'); track error) {
+                                    <div class="invalid-feedback d-block">
+                                        {{error}}
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Términos y Condiciones -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="acceptTerms"
+                                    [(ngModel)]="acceptedTerms" [ngModelOptions]="{standalone: true}">
+                                <label class="form-check-label" for="acceptTerms">
+                                    Acepto los <a href="/terms" target="_blank" class="text-primary fw-medium">Términos
+                                        y Condiciones</a>
+                                    y la <a href="/privacy" target="_blank" class="text-primary fw-medium">Política de
+                                        Privacidad</a> *
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Botón de Registro -->
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 rounded-2 fw-bold mb-4"
+                            [disabled]="registerForm.invalid || !acceptedTerms || isLoading">
+                            @if (!isLoading) {
+                            <span>
+                                <i class="fa fa-rocket me-2"></i>
+                                Crear Cuenta Gratis
+                            </span>
+                            }
+                            @if (isLoading) {
+                            <span>
+                                <i class="fa fa-spinner fa-spin me-2"></i>
+                                Creando cuenta...
+                            </span>
+                            }
+                        </button>
+
+                        <!-- Beneficios -->
+                        <!-- <div class="alert alert-light border rounded-2 mb-4">
+              <h6 class="fw-bold text-primary mb-2">✅ Con tu cuenta gratuita obtienes:</h6>
+              <ul class="list-unstyled mb-0">
+                <li class="mb-1"><i class="fa fa-check text-success me-2"></i> Menú digital ilimitado</li>
+                <li class="mb-1"><i class="fa fa-check text-success me-2"></i> Código QR personalizado</li>
+                <li class="mb-1"><i class="fa fa-check text-success me-2"></i> Estadísticas básicas</li>
+                <li class="mb-1"><i class="fa fa-check text-success me-2"></i> Soporte por email</li>
+              </ul>
+            </div> -->
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mb-3 text-muted">¿Ya tienes una cuenta?</p>
+                        <a routerLink="/login" class="btn btn-outline-primary btn-lg px-4 rounded-2">
+                            <i class="fa fa-sign-in-alt me-2"></i>
+                            Iniciar Sesión
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="card-footer bg-light text-center py-3">
+                    <small class="text-muted">
+                        Al registrarte, aceptas nuestros términos y recibirás emails ocasionales con consejos y ofertas.
+                        Puedes darte de baja en cualquier momento.
+                    </small>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a routerLink="/" class="back-home-link">
+                    <i class="fa fa-arrow-left me-2"></i>
+                    Volver al inicio
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- WhatsApp Floating Button -->
+<a
+  href="https://wa.me/59176225788?text=Hola%20quiero%20crear%20mi%20men%C3%BA%20digital%20con%20QR"
+  target="_blank"
+  class="whatsapp-float"
+  aria-label="WhatsApp"
+>
+  <i class="fa fa-whatsapp"></i>
+  <span class="whatsapp-text">
+    ¿Te ayudo a crear tu menú?
+  </span>
+</a>

@@ -1,0 +1,195 @@
+<div class="promotions-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Promociones</h1>
+        <p class="page-subtitle">
+          Crea y gestiona descuentos especiales para tus clientes
+        </p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" routerLink="/business/promotions/new">
+          <i class="fa fa-plus me-2"></i>
+          Nueva Promoción
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-card">
+    <div class="filters-content">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Estado</label>
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedStatus" 
+            (change)="filterPromotions()">
+            <option value="">Todos los estados</option>
+            <option value="active">Activas</option>
+            <option value="upcoming">Próximas</option>
+            <option value="expired">Expiradas</option>
+            <option value="inactive">Inactivas</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label class="filter-label">Buscar</label>
+          <div class="search-container">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Nombre de la promoción..."
+              [(ngModel)]="searchTerm"
+              (input)="filterPromotions()"
+            />
+            <button class="search-button" type="button">
+              <i class="fa fa-search"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Promotions Grid -->
+  <div class="promotions-container">
+    @if (isLoading) {
+      <div class="loading-container">
+        <app-loading-spinner message="Cargando promociones..."></app-loading-spinner>
+      </div>
+    }
+
+    @if (!isLoading && filteredPromotions.length === 0) {
+      <div class="empty-container">
+        <app-empty-state
+          icon="tag"
+          [title]="promotions.length === 0 ? 'Aún no tienes promociones' : 'No hay resultados'"
+          [description]="promotions.length === 0 ? 'Crea tu primera promoción para atraer más clientes' : 'Intenta con otros filtros'"
+          actionText="Crear primera promoción"
+          actionIcon="plus"
+          (onAction)="router.navigate(['/business/promotions/new'])">
+        </app-empty-state>
+      </div>
+    }
+
+    @if (!isLoading && filteredPromotions.length > 0) {
+      <div class="promotions-grid">
+        @for (promo of paginatedPromotions; track promo.id) {
+          <div class="promotion-card">
+            <div class="promotion-header">
+              <div class="promotion-discount">
+                <span class="discount-value">{{ getDiscountText(promo) }}</span>
+                <span class="discount-type">{{ promo.discount_type === 'percentage' ? 'DESCUENTO' : 'DESCUENTO FIJO' }}</span>
+              </div>
+              <span class="promotion-status" [class]="getPromotionStatusClass(promo)">
+                {{ getPromotionStatus(promo) }}
+              </span>
+            </div>
+            
+            <div class="promotion-content">
+              <h3 class="promotion-title">{{ promo.name }}</h3>
+              
+              @if (promo.description) {
+                <p class="promotion-description">
+                  {{ promo.description }}
+                </p>
+              }
+              
+              <div class="promotion-details">
+                <div class="detail-item">
+                  <i class="fa fa-calendar me-2"></i>
+                  {{ promo.start_date | date:'dd/MM/yyyy' }} - {{ promo.end_date | date:'dd/MM/yyyy' }}
+                </div>
+                
+                <div class="detail-item">
+                  <i class="fa fa-users me-2"></i>
+                  Usos: {{ promo.current_uses }}@if (promo.max_uses) { / {{ promo.max_uses }} }
+                </div>
+                
+                @if (promo.min_order_amount) {
+                  <div class="detail-item">
+                    <i class="fa fa-shopping-cart me-2"></i>
+                    Mínimo: €{{ promo.min_order_amount }}
+                  </div>
+                }
+              </div>
+              
+              <div class="promotion-footer">
+                <div class="promotion-uses">
+                  @if (promo.current_uses > 0) {
+                    <div class="usage-progress">
+                      <div class="progress-bar" 
+                           [style.width.%]="promo.max_uses ? (promo.current_uses / promo.max_uses * 100) : 0">
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="promotion-actions">
+                  <div class="form-check form-switch me-2">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      role="switch"
+                      [checked]="promo.is_active"
+                      (change)="togglePromotionStatus(promo)"
+                      title="{{ promo.is_active ? 'Desactivar' : 'Activar' }} promoción"
+                    />
+                  </div>
+                  <button 
+                    class="btn-action btn-edit" 
+                    [routerLink]="['/business/promotions', promo.id, 'edit']"
+                    title="Editar promoción">
+                    <i class="fa fa-edit"></i>
+                  </button>
+                  <button 
+                    class="btn-action btn-delete" 
+                    (click)="deletePromotion(promo)"
+                    title="Eliminar promoción">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (filteredPromotions.length > 0 && !isLoading) {
+    <div class="pagination-container">
+      <nav class="pagination">
+        <button 
+          class="pagination-button prev" 
+          [disabled]="currentPage === 1"
+          (click)="prevPage()">
+          <i class="fa fa-chevron-left me-1"></i>
+          Anterior
+        </button>
+        
+        <div class="pagination-pages">
+          @for (page of getPageNumbers(); track page) {
+            <button 
+              class="pagination-page" 
+              [class.active]="page === currentPage"
+              (click)="goToPage(page)">
+              {{ page }}
+            </button>
+          }
+        </div>
+        
+        <button 
+          class="pagination-button next" 
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()">
+          Siguiente
+          <i class="fa fa-chevron-right ms-1"></i>
+        </button>
+      </nav>
+    </div>
+  }
+</div>

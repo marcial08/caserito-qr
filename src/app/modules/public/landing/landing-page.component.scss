@@ -1,0 +1,265 @@
+.hero-section {
+  background: linear-gradient(135deg, #1e1b2c, #2f2b44);
+  padding: 80px 0;
+  color: #fff;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-img {
+  height: 60px;
+  border-radius: 10px;
+}
+
+.logo-text {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #d4a017;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  background: #ffc107;
+  color: #1e1b2c;
+
+  padding: 8px 16px;
+  border-radius: 999px;
+
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  max-width: 100%;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.bolivia-flag {
+  width: 25%;
+  height: auto;
+  flex-shrink: 0;
+}
+
+
+.hero-title {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #ff9e0d, #3fd28c);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.hero-cta {
+  margin: 30px 0;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.features-grid {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.feature-item {
+  background: rgba(255,255,255,0.1);
+  padding: 10px 16px;
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.hero-image {
+  width: 100%;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.4);
+}
+
+.steps-section, .for-section {
+  padding: 80px 0;
+}
+
+.step i {
+  font-size: 2.5rem;
+  color: #d4a017;
+  margin-bottom: 15px;
+}
+
+.cta-section {
+  background: linear-gradient(135deg, #7b3fee, #9d6dff);
+  padding: 80px 0;
+  color: #fff;
+}
+
+.btn-accent {
+  background: #d4a017;
+  color: #000;
+  font-weight: 700;
+}
+
+.whatsapp-float {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: #25D366;
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 50px;
+
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+  transition: all 0.3s ease;
+
+  animation: whatsapp-pulse 2.5s infinite;
+
+  i {
+    font-size: 28px;
+  }
+
+  .whatsapp-text {
+    white-space: nowrap;
+  }
+
+  &:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(37, 211, 102, 0.6);
+    text-decoration: none;
+    color: #fff;
+  }
+}
+
+/* Animación suave (no molesta) */
+@keyframes whatsapp-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+/* Mobile UX */
+@media (max-width: 576px) {
+  .whatsapp-float {
+    padding: 14px;
+    border-radius: 50%;
+    
+    .whatsapp-text {
+      display: none;
+    }
+
+    i {
+      font-size: 30px;
+    }
+  }
+}
+
+// Mobile styles
+
+@media (max-width: 576px) {
+
+  .hero-section {
+    padding: 50px 0;
+    text-align: center;
+  }
+
+  .logo-container {
+    justify-content: center;
+  }
+
+  .logo-img {
+    height: 48px;
+  }
+
+  .logo-text {
+    font-size: 1.8rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .hero-cta {
+    justify-content: center;
+  }
+
+  .features-grid {
+    justify-content: center;
+  }
+
+  .feature-item {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+
+  .steps-section,
+  .for-section,
+  .cta-section {
+    padding: 50px 0;
+    text-align: center;
+  }
+}
+
+// tables
+
+@media (max-width: 991px) {
+
+  .hero-title {
+    font-size: 2.4rem;
+  }
+
+  .hero-section {
+    padding: 60px 0;
+  }
+
+}
+
+
+
+@media (max-width: 576px) {
+
+  .hero-badge {
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 8px 14px;
+    line-height: 1.2;
+  }
+
+  .hero-badge span {
+    width: 100%;
+  }
+}

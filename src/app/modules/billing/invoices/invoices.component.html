@@ -1,0 +1,291 @@
+<div class="invoices-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Facturas y Pagos</h1>
+        <p class="page-subtitle">Gestiona tu historial de facturas y pagos</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline me-2" (click)="exportToCSV()">
+          <i class="fa fa-file-export me-2"></i>
+          Exportar CSV
+        </button>
+        <button class="btn btn-outline" (click)="printInvoices()">
+          <i class="fa fa-print me-2"></i>
+          Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-cards">
+    <div class="stats-card card-paid">
+      <div class="stats-icon">
+        <i class="fa fa-check-circle"></i>
+      </div>
+      <div class="stats-content">
+        <div class="stats-value">{{formatCurrency(stats.totalPaid, 'EUR')}}</div>
+        <div class="stats-label">Total Pagado</div>
+      </div>
+    </div>
+    
+    <div class="stats-card card-pending">
+      <div class="stats-icon">
+        <i class="fa fa-clock"></i>
+      </div>
+      <div class="stats-content">
+        <div class="stats-value">{{formatCurrency(stats.totalPending, 'EUR')}}</div>
+        <div class="stats-label">Pendiente</div>
+      </div>
+    </div>
+    
+    <div class="stats-card card-overdue">
+      <div class="stats-icon">
+        <i class="fa fa-exclamation-triangle"></i>
+      </div>
+      <div class="stats-content">
+        <div class="stats-value">{{formatCurrency(stats.totalOverdue, 'EUR')}}</div>
+        <div class="stats-label">Vencido</div>
+      </div>
+    </div>
+    
+    <div class="stats-card card-total">
+      <div class="stats-icon">
+        <i class="fa fa-receipt"></i>
+      </div>
+      <div class="stats-content">
+        <div class="stats-value">{{stats.totalInvoices}}</div>
+        <div class="stats-label">Facturas Totales</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filters-card">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Estado</label>
+          <select 
+            class="form-control" 
+            [(ngModel)]="statusFilter"
+            (change)="onFilterChange()"
+          >
+            <option value="all">Todos los estados</option>
+            <option value="paid">Pagado</option>
+            <option value="pending">Pendiente</option>
+            <option value="overdue">Vencido</option>
+            <option value="cancelled">Cancelado</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label class="filter-label">Período</label>
+          <select 
+            class="form-control" 
+            [(ngModel)]="dateFilter"
+            (change)="onFilterChange()"
+          >
+            <option value="all">Todo el tiempo</option>
+            <option value="last30">Últimos 30 días</option>
+            <option value="last60">Últimos 60 días</option>
+            <option value="thisYear">Este año</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label class="filter-label">Buscar</label>
+          <div class="search-input">
+            <i class="fa fa-search search-icon"></i>
+            <input 
+              type="text" 
+              class="form-control"
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onFilterChange()"
+              placeholder="Buscar por número o plan..."
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-container">
+      <app-loading-spinner message="Cargando facturas..."></app-loading-spinner>
+    </div>
+  }
+
+  <!-- Invoices Table -->
+  @if (!isLoading) {
+    <div class="invoices-table-section">
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="invoices-table">
+            <thead>
+              <tr>
+                <th (click)="onSort('invoiceNumber')">
+                  Número de Factura
+                  <i class="fa fa-sort ms-1" [class.fa-sort-up]="sortField === 'invoiceNumber' && sortDirection === 'asc'" 
+                     [class.fa-sort-down]="sortField === 'invoiceNumber' && sortDirection === 'desc'"></i>
+                </th>
+                <th (click)="onSort('date')">
+                  Fecha Emisión
+                  <i class="fa fa-sort ms-1" [class.fa-sort-up]="sortField === 'date' && sortDirection === 'asc'" 
+                     [class.fa-sort-down]="sortField === 'date' && sortDirection === 'desc'"></i>
+                </th>
+                <th (click)="onSort('dueDate')">
+                  Fecha Vencimiento
+                  <i class="fa fa-sort ms-1" [class.fa-sort-up]="sortField === 'dueDate' && sortDirection === 'asc'" 
+                     [class.fa-sort-down]="sortField === 'dueDate' && sortDirection === 'desc'"></i>
+                </th>
+                <th (click)="onSort('plan')">
+                  Plan
+                  <i class="fa fa-sort ms-1" [class.fa-sort-up]="sortField === 'plan' && sortDirection === 'asc'" 
+                     [class.fa-sort-down]="sortField === 'plan' && sortDirection === 'desc'"></i>
+                </th>
+                <th (click)="onSort('amount')">
+                  Importe
+                  <i class="fa fa-sort ms-1" [class.fa-sort-up]="sortField === 'amount' && sortDirection === 'asc'" 
+                     [class.fa-sort-down]="sortField === 'amount' && sortDirection === 'desc'"></i>
+                </th>
+                <th (click)="onSort('status')">
+                  Estado
+                  <i class="fa fa-sort ms-1" [class.fa-sort-up]="sortField === 'status' && sortDirection === 'asc'" 
+                     [class.fa-sort-down]="sortField === 'status' && sortDirection === 'desc'"></i>
+                </th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invoice of paginatedInvoices; track invoice.id) {
+                <tr>
+                  <td class="invoice-number">
+                    <strong>{{invoice.invoiceNumber}}</strong>
+                  </td>
+                  <td>{{formatDate(invoice.date)}}</td>
+                  <td>
+                    {{formatDate(invoice.dueDate)}}
+                    @if (invoice.status === 'overdue') {
+                      <span class="overdue-badge">¡Vencido!</span>
+                    }
+                  </td>
+                  <td>{{invoice.plan}}</td>
+                  <td class="invoice-amount">
+                    <strong>{{formatCurrency(invoice.amount, invoice.currency)}}</strong>
+                  </td>
+                  <td>
+                    <span class="status-badge" [class]="getStatusClass(invoice.status)">
+                      {{getStatusText(invoice.status)}}
+                    </span>
+                  </td>
+                  <td class="actions-cell">
+                    <div class="actions-group">
+                      <button class="btn-action btn-view" (click)="viewInvoice(invoice)" title="Ver factura">
+                        <i class="fa fa-eye"></i>
+                      </button>
+                      <button class="btn-action btn-download" (click)="downloadInvoice(invoice)" title="Descargar PDF">
+                        <i class="fa fa-download"></i>
+                      </button>
+                      @if (invoice.status === 'pending' || invoice.status === 'overdue') {
+                        <button class="btn-action btn-pay" (click)="payInvoice(invoice)" title="Pagar factura">
+                          <i class="fa fa-credit-card"></i>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          
+          <!-- Empty State -->
+          @if (filteredInvoices.length === 0) {
+            <div class="empty-state">
+              <i class="fa fa-receipt empty-icon"></i>
+              <h3 class="empty-title">No se encontraron facturas</h3>
+              <p class="empty-description">
+                No hay facturas que coincidan con los filtros aplicados.
+              </p>
+              <button class="btn btn-outline" (click)="statusFilter = 'all'; dateFilter = 'all'; searchTerm = ''; onFilterChange()">
+                Limpiar filtros
+              </button>
+            </div>
+          }
+        </div>
+        
+        <!-- Pagination -->
+        @if (totalPages > 1) {
+          <div class="pagination-section">
+           <div class="pagination-info">
+  Mostrando {{(currentPage - 1) * itemsPerPage + 1}} - {{getMin(currentPage * itemsPerPage, totalItems)}} de {{totalItems}} facturas
+</div>
+            <div class="pagination-controls">
+              <button 
+                class="pagination-btn" 
+                [disabled]="currentPage === 1"
+                (click)="onPageChange(currentPage - 1)"
+              >
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              
+              @for (page of [].constructor(totalPages); track page; let i = $index) {
+                <button 
+                  class="pagination-btn" 
+                  [class.active]="currentPage === i + 1"
+                  (click)="onPageChange(i + 1)"
+                >
+                  {{i + 1}}
+                </button>
+              }
+              
+              <button 
+                class="pagination-btn" 
+                [disabled]="currentPage === totalPages"
+                (click)="onPageChange(currentPage + 1)"
+              >
+                <i class="fa fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Help Section -->
+  <div class="help-section">
+    <div class="help-card">
+      <h3 class="help-title">
+        <i class="fa fa-question-circle me-2"></i>
+        ¿Necesitas ayuda?
+      </h3>
+      <div class="help-content">
+        <div class="help-item">
+          <i class="fa fa-file-invoice-dollar"></i>
+          <div>
+            <h4>¿Cómo descargar mis facturas?</h4>
+            <p>Haz clic en el ícono de descarga junto a cada factura para obtener el PDF.</p>
+          </div>
+        </div>
+        <div class="help-item">
+          <i class="fa fa-credit-card"></i>
+          <div>
+            <h4>¿Cómo pagar una factura pendiente?</h4>
+            <p>Haz clic en el ícono de tarjeta de crédito junto a la factura pendiente.</p>
+          </div>
+        </div>
+        <div class="help-item">
+          <i class="fa fa-clock"></i>
+          <div>
+            <h4>¿Facturas vencidas?</h4>
+            <p>Las facturas vencidas deben pagarse inmediatamente para evitar la suspensión del servicio.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

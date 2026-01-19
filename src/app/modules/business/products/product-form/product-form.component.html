@@ -1,0 +1,436 @@
+<div class="product-form-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">
+          {{ isEditMode ? 'Editar Producto' : 'Nuevo Producto' }}
+        </h1>
+        <p class="page-subtitle">
+          {{ isEditMode ? 'Modifica la información de tu producto' : 'Completa la información para agregar un nuevo
+          producto' }}
+        </p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="onCancel()">
+          <i class="fa fa-times me-2"></i>
+          Cancelar
+        </button>
+        <button class="btn btn-primary" (click)="onSubmit()" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+          <i class="fa fa-spinner fa-spin me-2"></i>
+          } @else {
+          <i class="fa fa-save me-2"></i>
+          }
+          {{ isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear Producto') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+  <div class="loading-container">
+    <app-loading-spinner [message]="isEditMode ? 'Cargando producto...' : 'Preparando formulario...'">
+    </app-loading-spinner>
+  </div>
+  }
+
+  @if (!isLoading) {
+  <form [formGroup]="productForm" class="product-form">
+    <div class="form-grid">
+      <!-- Left Column: Basic Information -->
+      <div class="form-column">
+        <!-- Product Information Card -->
+        <div class="form-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fa fa-info-circle me-2"></i>
+              Información del Producto
+            </h3>
+          </div>
+          <div class="card-body">
+            <!-- Product Name -->
+            <div class="form-group">
+              <label class="form-label required" for="product-name">
+                Nombre del Producto
+              </label>
+              <input type="text" id="product-name" class="form-control"
+                [class.is-invalid]="hasError('name', 'required')" formControlName="name"
+                placeholder="Ej: Pizza Margarita Grande" maxlength="100" />
+              @if (hasError('name', 'required')) {
+              <div class="invalid-feedback">
+                El nombre del producto es requerido
+              </div>
+              }
+              <div class="form-hint">
+                Máximo 100 caracteres. {{ productForm.get('name')?.value?.length || 0 }}/100
+              </div>
+            </div>
+
+            <!-- Product Description -->
+            <div class="form-group">
+              <label class="form-label" for="product-description">
+                Descripción
+              </label>
+              <textarea id="product-description" class="form-control" formControlName="description"
+                placeholder="Describe tu producto para los clientes..." rows="4" maxlength="500"></textarea>
+              <div class="form-hint">
+                Máximo 500 caracteres. {{ productForm.get('description')?.value?.length || 0 }}/500
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+              <label class="form-label required" for="product-category">
+                Categoría
+              </label>
+              <select id="product-category" class="form-select" [class.is-invalid]="hasError('category_id', 'required')"
+                formControlName="category_id">
+                <option value="">Selecciona una categoría</option>
+                @for (category of categories; track category.id) {
+                <option [value]="category.id">
+                  {{ category.name }}
+                  @if (category.product_count !== undefined) {
+                  <span class="text-muted">({{ category.product_count }})</span>
+                  }
+                </option>
+                }
+              </select>
+              @if (hasError('category_id', 'required')) {
+              <div class="invalid-feedback">
+                La categoría es requerida
+              </div>
+              }
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label class="form-label" for="product-tags">
+                Etiquetas
+              </label>
+              <div class="tags-container">
+                <div class="tags-input-wrapper">
+                  <input type="text" id="product-tags" class="tags-input"
+                    placeholder="Presiona Enter para agregar etiquetas" (keyup.enter)="addTag($event)" />
+                  <i class="fa fa-tag tags-icon"></i>
+                </div>
+                @if (tagsArray.length > 0) {
+                <div class="tags-list">
+                  @for (tag of tagsArray; track tag) {
+                  <span class="tag-badge">
+                    {{ tag }}
+                    <button type="button" class="tag-remove" (click)="removeTag(tag)">
+                      <i class="fa fa-times"></i>
+                    </button>
+                  </span>
+                  }
+                </div>
+                }
+              </div>
+              <div class="form-hint">
+                Las etiquetas ayudan a los clientes a encontrar tu producto
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing Card -->
+        <div class="form-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fa fa-tag me-2"></i>
+              Precios
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="pricing-grid">
+              <!-- Base Price -->
+              <div class="form-group">
+                <label class="form-label required" for="base-price">
+                  Precio de Venta
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    {{ productForm.get('currency')?.value || 'EUR' }}
+                  </span>
+                  <input type="number" id="base-price" class="form-control"
+                    [class.is-invalid]="hasError('base_price', 'required') || hasError('base_price', 'min')"
+                    formControlName="base_price" min="0" step="0.01" />
+                </div>
+                @if (hasError('base_price', 'required')) {
+                <div class="invalid-feedback">
+                  El precio de venta es requerido
+                </div>
+                }
+                @if (hasError('base_price', 'min')) {
+                <div class="invalid-feedback">
+                  El precio debe ser mayor o igual a 0
+                </div>
+                }
+              </div>
+
+              <!-- Compare Price -->
+              <div class="form-group">
+                <label class="form-label" for="compare-price">
+                  Precio Comparativo
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    {{ productForm.get('currency')?.value || 'EUR' }}
+                  </span>
+                  <input type="number" id="compare-price" class="form-control" formControlName="compare_price" min="0"
+                    step="0.01" />
+                </div>
+                @if (productForm.get('compare_price')?.value > productForm.get('base_price')?.value) {
+                <div class="discount-badge">
+                  <span class="discount-percentage">
+                    {{ calculateDiscountPercentage() | number:'1.0-0' }}% OFF
+                  </span>
+                  <span class="discount-amount">
+                    Ahorra {{ (productForm.get('compare_price')?.value - productForm.get('base_price')?.value) |
+                    currency:productForm.get('currency')?.value }}
+                  </span>
+                </div>
+                }
+              </div>
+
+              <!-- Cost Price -->
+              <div class="form-group">
+                <label class="form-label" for="cost-price">
+                  Precio de Costo
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    {{ productForm.get('currency')?.value || 'EUR' }}
+                  </span>
+                  <input type="number" id="cost-price" class="form-control" formControlName="cost_price" min="0"
+                    step="0.01" />
+                </div>
+                @if (productForm.get('cost_price')?.value > 0) {
+                <div class="profit-margin">
+                  <span>Margen de ganancia:</span>
+                  <span [class.text-success]="calculateProfitMargin() > 0"
+                    [class.text-danger]="calculateProfitMargin() <= 0">
+                    {{ calculateProfitMargin() | number:'1.0-2' }}%
+                  </span>
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory & Settings Card -->
+        <div class="form-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fa fa-boxes me-2"></i>
+              Inventario y Configuración
+            </h3>
+          </div>
+          <div class="card-body">
+            <!-- SKU -->
+            <div class="form-group">
+              <label class="form-label" for="sku">
+                SKU
+              </label>
+              <div class="input-group">
+                <input type="text" id="sku" class="form-control" formControlName="sku"
+                  placeholder="Ej: PIZZA-MARG-001" />
+                <button type="button" class="btn btn-outline-secondary" (click)="generateSKU()"
+                  title="Generar SKU automáticamente">
+                  <i class="fa fa-magic"></i>
+                </button>
+              </div>
+              <div class="form-hint">
+                Código único del producto. Usa el botón mágico para generar uno automáticamente.
+              </div>
+            </div>
+
+            <!-- Sort Order -->
+            <div class="form-group">
+              <label class="form-label" for="sort-order">
+                Orden de Visualización
+              </label>
+              <input type="number" id="sort-order" class="form-control" formControlName="sort_order" min="0"
+                placeholder="0" />
+              <div class="form-hint">
+                Los productos se ordenarán de menor a mayor número. Usa 0 para el orden por defecto.
+              </div>
+            </div>
+
+            <!-- Availability -->
+            <div class="form-group">
+              <div class="form-check">
+                <input type="checkbox" id="is-available" class="form-check-input" formControlName="is_available" />
+                <label class="form-check-label" for="is-available">
+                  Producto disponible
+                </label>
+              </div>
+              <div class="form-hint">
+                Si está desactivado, los clientes no podrán ver el producto
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Media, SEO -->
+      <div class="form-column">
+        <!-- Images Card -->
+        <div class="form-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fa fa-images me-2"></i>
+              Imágenes
+            </h3>
+            @if (planLimits?.numeric?.max_images) {
+            <span class="card-subtitle">
+              {{ uploadedImages.length }} / {{ planLimits.numeric.max_images }}
+            </span>
+            }
+          </div>
+          <div class="card-body">
+            <app-image-upload [currentImages]="uploadedImages" (imagesUploaded)="onImagesUploaded($event)"
+              (imageRemoved)="removeImage($event)" (mainImageChanged)="setPrimaryImage($event)"></app-image-upload>
+            <div class="image-requirements">
+              <h4>Recomendaciones:</h4>
+              <ul>
+                <li>Usa imágenes de alta calidad (mínimo 800x600px)</li>
+                <li>Formato recomendado: JPG, PNG, WebP</li>
+                <li>Tamaño máximo por archivo: 5MB</li>
+                <li>La primera imagen será la principal</li>
+                <li>Usa fondo blanco para mejores resultados</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEO Card -->
+        <div class="form-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fa fa-search me-2"></i>
+              SEO (Opcional)
+            </h3>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-3">
+              Optimiza cómo aparece tu producto en los motores de búsqueda.
+            </p>
+
+            <!-- SEO Title (auto-generated from product name) -->
+            <div class="form-group">
+              <label class="form-label" for="seo-title">
+                Título SEO
+              </label>
+              <input type="text" id="seo-title" class="form-control" [value]="productForm.get('name')?.value || ''"
+                readonly maxlength="60" />
+              <div class="form-hint">
+                Generado automáticamente desde el nombre del producto.
+              </div>
+            </div>
+
+            <!-- SEO Description (auto-generated from product description) -->
+            <div class="form-group">
+              <label class="form-label" for="seo-description">
+                Descripción SEO
+              </label>
+              <textarea id="seo-description" class="form-control" [value]="productForm.get('description')?.value || ''"
+                readonly rows="3" maxlength="160"></textarea>
+              <div class="form-hint">
+                Generado automáticamente desde la descripción del producto.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="form-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fa fa-eye me-2"></i>
+              Vista Previa
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="product-preview">
+              @if (uploadedImages.length > 0) {
+              <div class="preview-image">
+                @if (primaryImageIndex >= 0 && primaryImageIndex
+                < uploadedImages.length && uploadedImages[primaryImageIndex].url) { <img
+                  [src]="uploadedImages[primaryImageIndex].url" [alt]="productForm.get('name')?.value || 'Producto'"
+                  class="img-fluid rounded" />
+                } @else if (uploadedImages.length > 0 && uploadedImages[0].url) {
+                <img [src]="uploadedImages[0].url" [alt]="productForm.get('name')?.value || 'Producto'"
+                  class="img-fluid rounded" />
+                }
+              </div>
+              } @else {
+              <div class="preview-placeholder">
+                <i class="fa fa-image fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Sin imágenes aún</p>
+              </div>
+              }
+
+              <div class="preview-details">
+                <h4 class="preview-title">{{ productForm.get('name')?.value || 'Nombre del producto' }}</h4>
+
+                @if (productForm.get('description')?.value) {
+                <p class="preview-description text-muted">
+                  {{ (productForm.get('description')?.value || '').slice(0, 100) }}
+                  {{ (productForm.get('description')?.value || '').length > 100 ? '...' : '' }}
+                </p>
+                }
+
+                <div class="preview-pricing">
+                  <span class="preview-price">
+                    {{ productForm.get('base_price')?.value || 0 | currency:productForm.get('currency')?.value }}
+                  </span>
+                  @if (productForm.get('compare_price')?.value > productForm.get('base_price')?.value) {
+                  <span class="preview-compare-price text-muted text-decoration-line-through ms-2">
+                    {{ productForm.get('compare_price')?.value | currency:productForm.get('currency')?.value }}
+                  </span>
+                  <span class="badge bg-danger ms-2">
+                    {{ calculateDiscountPercentage() | number:'1.0-0' }}% OFF
+                  </span>
+                  }
+                </div>
+
+                @if (tagsArray.length > 0) {
+                <div class="preview-tags">
+                  @for (tag of tagsArray.slice(0, 3); track tag) {
+                  <span class="badge bg-light text-dark me-1">{{ tag }}</span>
+                  }
+                  @if (tagsArray.length > 3) {
+                  <span class="badge bg-light text-dark">+{{ tagsArray.length - 3 }}</span>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <div class="actions-content">
+        <button type="button" class="btn btn-outline" (click)="onCancel()" [disabled]="isSubmitting">
+          <i class="fa fa-times me-2"></i>
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+          <i class="fa fa-spinner fa-spin me-2"></i>
+          } @else {
+          <i class="fa fa-save me-2"></i>
+          }
+          {{ isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar Producto' : 'Crear Producto') }}
+        </button>
+      </div>
+    </div>
+  </form>
+  }
+</div>

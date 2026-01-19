@@ -1,0 +1,535 @@
+<div class="settings-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Configuración</h1>
+        <p class="page-subtitle">
+          Personaliza la configuración de tu menú digital
+        </p>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <app-loading-spinner message="Cargando configuración..."></app-loading-spinner>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div class="settings-content">
+      <!-- Sidebar Navigation -->
+      <div class="settings-sidebar">
+        <nav class="settings-nav">
+          <button 
+            class="nav-item" 
+            [class.active]="currentSection === 'general'"
+            (click)="setSection('general')">
+            <i class="fa fa-cog me-2"></i>
+            General
+          </button>
+          
+          <button 
+            class="nav-item" 
+            [class.active]="currentSection === 'appearance'"
+            (click)="setSection('appearance')">
+            <i class="fa fa-palette me-2"></i>
+            Apariencia
+          </button>
+          
+          <button 
+            class="nav-item" 
+            [class.active]="currentSection === 'menu'"
+            (click)="setSection('menu')">
+            <i class="fa fa-utensils me-2"></i>
+            Menú
+          </button>
+          
+          <button 
+            class="nav-item" 
+            [class.active]="currentSection === 'notifications'"
+            (click)="setSection('notifications')">
+            <i class="fa fa-bell me-2"></i>
+            Notificaciones
+          </button>
+          
+          <button 
+            class="nav-item" 
+            [class.active]="currentSection === 'integrations'"
+            (click)="setSection('integrations')">
+            <i class="fa fa-plug me-2"></i>
+            Integraciones
+          </button>
+          
+          <button 
+            class="nav-item" 
+            [class.active]="currentSection === 'advanced'"
+            (click)="setSection('advanced')">
+            <i class="fa fa-sliders me-2"></i>
+            Avanzado
+          </button>
+        </nav>
+      </div>
+
+      <!-- Settings Form -->
+      <div class="settings-form-container">
+        <form [formGroup]="settingsForm" class="settings-form">
+          
+          <!-- General Settings -->
+          @if (currentSection === 'general') {
+            <div class="settings-section">
+              <h2 class="section-title">Información General</h2>
+              <p class="section-description">
+                Configura la información básica de tu negocio.
+              </p>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label required" for="business-name">
+                    Nombre del Negocio
+                  </label>
+                  <input
+                    type="text"
+                    id="business-name"
+                    class="form-control"
+                    [class.is-invalid]="hasError('name', 'required')"
+                    formControlName="name"
+                    placeholder="Ej: Mi Restaurante"
+                    maxlength="100"
+                  />
+                  @if (hasError('name', 'required')) {
+                    <div class="invalid-feedback">
+                      El nombre del negocio es requerido
+                    </div>
+                  }
+                  <div class="form-hint">
+                    Máximo 100 caracteres
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="business-email">
+                    Email de Contacto
+                  </label>
+                  <input
+                    type="email"
+                    id="business-email"
+                    class="form-control"
+                    [class.is-invalid]="hasError('email', 'required') || hasError('email', 'email')"
+                    formControlName="email"
+                    placeholder="contacto@negocio.com"
+                  />
+                  @if (hasError('email', 'required')) {
+                    <div class="invalid-feedback">
+                      El email es requerido
+                    </div>
+                  }
+                  @if (hasError('email', 'email')) {
+                    <div class="invalid-feedback">
+                      Por favor, ingresa un email válido
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="business-phone">
+                    Teléfono
+                  </label>
+                  <input
+                    type="tel"
+                    id="business-phone"
+                    class="form-control"
+                    formControlName="phone"
+                    placeholder="+34 123 456 789"
+                    maxlength="20"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="business-address">
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    id="business-address"
+                    class="form-control"
+                    formControlName="address"
+                    placeholder="Calle Principal 123"
+                    maxlength="200"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="business-city">
+                    Ciudad
+                  </label>
+                  <input
+                    type="text"
+                    id="business-city"
+                    class="form-control"
+                    formControlName="city"
+                    placeholder="Ciudad"
+                    maxlength="50"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="business-country">
+                    País
+                  </label>
+                  <select
+                    id="business-country"
+                    class="form-select"
+                    [class.is-invalid]="hasError('country', 'required')"
+                    formControlName="country"
+                  >
+                    <option value="ES">España</option>
+                    <option value="US">Estados Unidos</option>
+                    <option value="MX">México</option>
+                    <option value="AR">Argentina</option>
+                    <option value="CO">Colombia</option>
+                  </select>
+                  @if (hasError('country', 'required')) {
+                    <div class="invalid-feedback">
+                      El país es requerido
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="timezone">
+                    Zona Horaria
+                  </label>
+                  <select
+                    id="timezone"
+                    class="form-select"
+                    [class.is-invalid]="hasError('timezone', 'required')"
+                    formControlName="timezone"
+                  >
+                    <option value="Europe/Madrid">Madrid (GMT+1)</option>
+                    <option value="America/New_York">Nueva York (GMT-5)</option>
+                    <option value="America/Mexico_City">Ciudad de México (GMT-6)</option>
+                    <option value="America/Buenos_Aires">Buenos Aires (GMT-3)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="currency">
+                    Moneda
+                  </label>
+                  <select
+                    id="currency"
+                    class="form-select"
+                    [class.is-invalid]="hasError('currency', 'required')"
+                    formControlName="currency"
+                  >
+                    <option value="EUR">Euro (€)</option>
+                    <option value="USD">Dólar Americano ($)</option>
+                    <option value="MXN">Peso Mexicano ($)</option>
+                    <option value="ARS">Peso Argentino ($)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Appearance Settings -->
+          @if (currentSection === 'appearance') {
+            <div class="settings-section">
+              <h2 class="section-title">Apariencia</h2>
+              <p class="section-description">
+                Personaliza los colores y fuentes de tu menú digital.
+              </p>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="primary-color">
+                    Color Principal
+                  </label>
+                  <div class="color-picker">
+                    <input
+                      type="color"
+                      id="primary-color"
+                      class="color-input"
+                      formControlName="primary_color"
+                    />
+                    <input
+                      type="text"
+                      class="color-text"
+                      formControlName="primary_color"
+                      maxlength="7"
+                    />
+                  </div>
+                  <div class="form-hint">
+                    Color principal de botones y elementos destacados
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="secondary-color">
+                    Color Secundario
+                  </label>
+                  <div class="color-picker">
+                    <input
+                      type="color"
+                      id="secondary-color"
+                      class="color-input"
+                      formControlName="secondary_color"
+                    />
+                    <input
+                      type="text"
+                      class="color-text"
+                      formControlName="secondary_color"
+                      maxlength="7"
+                    />
+                  </div>
+                  <div class="form-hint">
+                    Color para textos y elementos secundarios
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="font-family">
+                    Fuente
+                  </label>
+                  <select
+                    id="font-family"
+                    class="form-select"
+                    formControlName="font_family"
+                  >
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Poppins">Poppins</option>
+                  </select>
+                  <div class="form-hint">
+                    Fuente principal del menú
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Vista Previa
+                  </label>
+                  <div class="preview-card">
+                    <div class="preview-header">
+                      <h4 [style.fontFamily]="settingsForm.get('font_family')?.value">Mi Restaurante</h4>
+                    </div>
+                    <div class="preview-body">
+                      <div class="preview-button" 
+                           [style.backgroundColor]="settingsForm.get('primary_color')?.value">
+                        Ver Menú
+                      </div>
+                      <p [style.color]="settingsForm.get('secondary_color')?.value"
+                         [style.fontFamily]="settingsForm.get('font_family')?.value">
+                        Bienvenido a nuestro menú digital
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Menu Settings -->
+          @if (currentSection === 'menu') {
+            <div class="settings-section">
+              <h2 class="section-title">Configuración del Menú</h2>
+              <p class="section-description">
+                Personaliza cómo se muestra tu menú a los clientes.
+              </p>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="show-prices"
+                      class="form-check-input"
+                      formControlName="show_prices"
+                    />
+                    <label class="form-check-label" for="show-prices">
+                      Mostrar precios
+                    </label>
+                  </div>
+                  <div class="form-hint">
+                    Los clientes podrán ver los precios de los productos
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="show-images"
+                      class="form-check-input"
+                      formControlName="show_images"
+                    />
+                    <label class="form-check-label" for="show-images">
+                      Mostrar imágenes
+                    </label>
+                  </div>
+                  <div class="form-hint">
+                    Las imágenes de los productos serán visibles
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="allow-comments"
+                      class="form-check-input"
+                      formControlName="allow_comments"
+                    />
+                    <label class="form-check-label" for="allow-comments">
+                      Permitir comentarios
+                    </label>
+                  </div>
+                  <div class="form-hint">
+                    Los clientes podrán dejar comentarios en los productos
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="tax-included"
+                      class="form-check-input"
+                      formControlName="tax_included"
+                    />
+                    <label class="form-check-label" for="tax-included">
+                      Precios con IVA incluido
+                    </label>
+                  </div>
+                </div>
+
+                @if (!settingsForm.get('tax_included')?.value) {
+                  <div class="form-group">
+                    <label class="form-label" for="tax-rate">
+                      Tasa de IVA (%)
+                    </label>
+                    <input
+                      type="number"
+                      id="tax-rate"
+                      class="form-control"
+                      formControlName="tax_rate"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                    <div class="form-hint">
+                      Porcentaje de impuesto a aplicar
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Notifications Settings -->
+          @if (currentSection === 'notifications') {
+            <div class="settings-section">
+              <h2 class="section-title">Notificaciones</h2>
+              <p class="section-description">
+                Configura cómo y cuándo recibir notificaciones.
+              </p>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="email-notifications"
+                      class="form-check-input"
+                      formControlName="email_notifications"
+                    />
+                    <label class="form-check-label" for="email-notifications">
+                      Notificaciones por Email
+                    </label>
+                  </div>
+                  <div class="form-hint">
+                    Recibe notificaciones importantes por email
+                  </div>
+                </div>
+
+                @if (settingsForm.get('email_notifications')?.value) {
+                  <div class="form-group">
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        id="new-order-notification"
+                        class="form-check-input"
+                        formControlName="new_order_notification"
+                      />
+                      <label class="form-check-label" for="new-order-notification">
+                        Nuevos pedidos
+                      </label>
+                    </div>
+                    <div class="form-hint">
+                      Recibe notificación cuando un cliente realice un pedido
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        id="low-stock-notification"
+                        class="form-check-input"
+                        formControlName="low_stock_notification"
+                      />
+                      <label class="form-check-label" for="low-stock-notification">
+                        Stock bajo
+                      </label>
+                    </div>
+                    <div class="form-hint">
+                      Notificación cuando productos estén por agotarse
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        id="promotion-notification"
+                        class="form-check-input"
+                        formControlName="promotion_notification"
+                      />
+                      <label class="form-check-label" for="promotion-notification">
+                        Promociones activas
+                      </label>
+                    </div>
+                    <div class="form-hint">
+                      Resumen semanal de promociones activas
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Save Button -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="onSubmit()"
+              [disabled]="isSubmitting"
+            >
+              @if (isSubmitting) {
+                <i class="fa fa-spinner fa-spin me-2"></i>
+              } @else {
+                <i class="fa fa-save me-2"></i>
+              }
+              {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

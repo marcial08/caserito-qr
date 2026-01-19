@@ -1,0 +1,584 @@
+<div class="menu-management-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Gestión del Menú</h1>
+        <p class="page-subtitle">
+          Organiza la estructura y apariencia de tu menú digital
+        </p>
+      </div>
+      <div class="header-actions">
+        <div class="header-stats">
+          <span class="stat-item">
+            <i class="fa fa-layer-group me-1"></i>
+            {{ getTotalCategories() }} categorías
+          </span>
+          <span class="stat-item">
+            <i class="fa fa-box me-1"></i>
+            {{ getTotalProducts() }} productos
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-navigation">
+    <nav class="tabs">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'structure'"
+        (click)="setActiveTab('structure')">
+        <i class="fa fa-sitemap me-2"></i>
+        Estructura
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'preview'"
+        (click)="setActiveTab('preview')">
+        <i class="fa fa-eye me-2"></i>
+        Vista Previa
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'settings'"
+        (click)="setActiveTab('settings')">
+        <i class="fa fa-cog me-2"></i>
+        Configuración
+      </button>
+    </nav>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <app-loading-spinner message="Cargando estructura del menú..."></app-loading-spinner>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <!-- Structure Tab -->
+    @if (activeTab === 'structure') {
+      <div class="structure-tab">
+        <div class="structure-content">
+          <!-- Add Category Form -->
+          <div class="add-category-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa fa-plus-circle me-2"></i>
+                Agregar Nueva Categoría
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="add-category-form">
+                <div class="form-group">
+                  <label class="form-label">Nombre de la categoría</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="newCategoryName"
+                    placeholder="Ej: Entradas, Platos Principales"
+                    maxlength="50"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Descripción (opcional)</label>
+                  <textarea
+                    class="form-control"
+                    [(ngModel)]="newCategoryDescription"
+                    placeholder="Describe esta categoría..."
+                    rows="2"
+                    maxlength="200"
+                  ></textarea>
+                </div>
+                <button 
+                  class="btn btn-primary"
+                  (click)="addCategory()"
+                  [disabled]="!newCategoryName.trim()">
+                  <i class="fa fa-plus me-2"></i>
+                  Crear Categoría
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Menu Structure -->
+          <div class="menu-structure-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa fa-sitemap me-2"></i>
+                Estructura del Menú
+              </h3>
+              <p class="card-subtitle">
+                Arrastra o usa los botones para reorganizar categorías y productos
+              </p>
+            </div>
+            <div class="card-body">
+              @if (menuStructure.length === 0) {
+                <div class="empty-structure">
+                  <i class="fa fa-sitemap fa-3x text-muted mb-3"></i>
+                  <h4>No hay categorías</h4>
+                  <p class="text-muted">Comienza creando tu primera categoría</p>
+                </div>
+              } @else {
+                <div class="menu-structure">
+                  @for (category of menuStructure; track category.id; let catIndex = $index) {
+                    <div class="category-section">
+                      <div class="category-header">
+                        <div class="category-info">
+                          <button 
+                            class="expand-toggle"
+                            (click)="toggleCategoryExpand(category)">
+                            <i class="fa" [class.fa-chevron-down]="category.isExpanded" [class.fa-chevron-right]="!category.isExpanded"></i>
+                          </button>
+                          <div class="category-details">
+                            <h4 class="category-name">{{ category.name }}</h4>
+                            @if (category.description) {
+                              <p class="category-description">{{ category.description }}</p>
+                            }
+                          </div>
+                          <div class="category-stats">
+                            <span class="product-count">
+                              {{ category.products?.length || 0 }} productos
+                            </span>
+                            <span class="category-order">
+                              Orden: {{ category.display_order }}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div class="category-actions">
+                          <button 
+                            class="btn-action btn-move-up"
+                            [disabled]="catIndex === 0"
+                            (click)="moveCategoryUp(catIndex)"
+                            title="Mover arriba">
+                            <i class="fa fa-arrow-up"></i>
+                          </button>
+                          <button 
+                            class="btn-action btn-move-down"
+                            [disabled]="catIndex === menuStructure.length - 1"
+                            (click)="moveCategoryDown(catIndex)"
+                            title="Mover abajo">
+                            <i class="fa fa-arrow-down"></i>
+                          </button>
+                          <button 
+                            class="btn-action btn-edit"
+                            [routerLink]="['/business/categories', category.id, 'edit']"
+                            title="Editar categoría">
+                            <i class="fa fa-edit"></i>
+                          </button>
+                          <button 
+                            class="btn-action btn-delete"
+                            (click)="deleteCategory(category.id)"
+                            title="Eliminar categoría">
+                            <i class="fa fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Products List -->
+                      @if (category.isExpanded) {
+                        <div class="products-list">
+                          @if (category.products && category.products.length > 0) {
+                            <div class="products-grid">
+                              @for (product of category.products; track product.id; let prodIndex = $index) {
+                                <div class="product-item">
+                                  <div class="product-info">
+                                    <div class="product-main">
+                                      <div class="product-name">{{ product.name }}</div>
+                                      <div class="product-price">
+                                        {{ product.base_price | currency:product.currency }}
+                                      </div>
+                                    </div>
+                                    @if (product.description) {
+                                      <div class="product-description">
+                                        {{ product.description | slice:0:60 }}{{ product.description.length > 60 ? '...' : '' }}
+                                      </div>
+                                    }
+                                    <div class="product-tags">
+                                      @for (tag of product.tags.slice(0, 2); track tag) {
+                                        <span class="tag">{{ tag }}</span>
+                                      }
+                                      @if (product.tags.length > 2) {
+                                        <span class="tag-more">+{{ product.tags.length - 2 }}</span>
+                                      }
+                                    </div>
+                                  </div>
+                                  
+                                  <div class="product-actions">
+                                    <div class="form-check form-switch">
+                                      <input
+                                        type="checkbox"
+                                        class="form-check-input"
+                                        role="switch"
+                                        [checked]="product.is_available"
+                                        (change)="toggleProductAvailability(product)"
+                                        title="{{ product.is_available ? 'Desactivar' : 'Activar' }} producto"
+                                      />
+                                    </div>
+                                    <button 
+                                      class="btn-action btn-move-up"
+                                      [disabled]="prodIndex === 0"
+                                      (click)="moveProductUp(catIndex, prodIndex)"
+                                      title="Mover arriba">
+                                      <i class="fa fa-arrow-up"></i>
+                                    </button>
+                                    <button 
+                                      class="btn-action btn-move-down"
+                                      [disabled]="prodIndex === category.products.length - 1"
+                                      (click)="moveProductDown(catIndex, prodIndex)"
+                                      title="Mover abajo">
+                                      <i class="fa fa-arrow-down"></i>
+                                    </button>
+                                    <button 
+                                      class="btn-action btn-edit"
+                                      [routerLink]="['/business/products', product.id, 'edit']"
+                                      title="Editar producto">
+                                      <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button 
+                                      class="btn-action btn-delete"
+                                      (click)="deleteProduct(product.id)"
+                                      title="Eliminar producto">
+                                      <i class="fa fa-trash"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          } @else {
+                            <div class="empty-products">
+                              <i class="fa fa-box-open text-muted me-2"></i>
+                              <span class="text-muted">No hay productos en esta categoría</span>
+                              <button 
+                                class="btn btn-sm btn-outline-primary ms-3"
+                                routerLink="/business/products/new">
+                                <i class="fa fa-plus me-1"></i>
+                                Agregar producto
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Preview Tab -->
+    @if (activeTab === 'preview') {
+      <div class="preview-tab">
+        <div class="preview-content">
+          <div class="preview-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa fa-eye me-2"></i>
+                Vista Previa del Menú
+              </h3>
+              <p class="card-subtitle">
+                Así verán los clientes tu menú digital
+              </p>
+            </div>
+            <div class="card-body">
+              <div class="menu-preview">
+                <!-- Preview Header -->
+                <div class="preview-header">
+                  <div class="preview-logo">
+                    <i class="fa fa-store fa-2x"></i>
+                  </div>
+                  <div class="preview-restaurant-info">
+                    <h2 class="restaurant-name">Mi Restaurante</h2>
+                    <p class="restaurant-slogan">Menú Digital</p>
+                  </div>
+                </div>
+
+                <!-- Preview Categories -->
+                <div class="preview-categories">
+                  @for (category of menuStructure.slice(0, 3); track category.id) {
+                    <div class="preview-category">
+                      <h3 class="category-title">{{ category.name }}</h3>
+                      @if (category.products && category.products.length > 0) {
+                        <div class="preview-products">
+                          @for (product of category.products.slice(0, 3); track product.id) {
+                            <div class="preview-product" [class.unavailable]="!product.is_available">
+                              <div class="product-preview-info">
+                                <h4 class="product-name">{{ product.name }}</h4>
+                                @if (product.description) {
+                                  <p class="product-description">
+                                    {{ product.description | slice:0:80 }}{{ product.description.length > 80 ? '...' : '' }}
+                                  </p>
+                                }
+                                <div class="product-price">
+                                  {{ product.base_price | currency:product.currency }}
+                                  @if (product.compare_price && product.compare_price > product.base_price) {
+                                    <span class="compare-price">
+                                      {{ product.compare_price | currency:product.currency }}
+                                    </span>
+                                  }
+                                </div>
+                              </div>
+                              @if (product.images && product.images.length > 0) {
+                                <div class="product-preview-image">
+                                  <div class="image-placeholder">
+                                    <i class="fa fa-image"></i>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Preview Footer -->
+                <div class="preview-footer">
+                  <p class="preview-footer-text">
+                    Escanea el código QR para ver el menú completo
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Actions -->
+          <div class="preview-actions">
+            <div class="action-buttons">
+              <button class="btn btn-outline-primary">
+                <i class="fa fa-mobile-alt me-2"></i>
+                Vista Móvil
+              </button>
+              <button class="btn btn-outline-primary">
+                <i class="fa fa-desktop me-2"></i>
+                Vista Escritorio
+              </button>
+              <button class="btn btn-outline-primary">
+                <i class="fa fa-tablet-alt me-2"></i>
+                Vista Tablet
+              </button>
+            </div>
+            <div class="preview-info">
+              <p class="text-muted">
+                <i class="fa fa-info-circle me-2"></i>
+                Esta es una vista previa básica. Los clientes verán una versión interactiva.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Settings Tab -->
+    @if (activeTab === 'settings') {
+      <div class="settings-tab">
+        <div class="settings-content">
+          <div class="settings-grid">
+            <!-- Display Settings -->
+            <div class="settings-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa fa-display me-2"></i>
+                  Configuración de Visualización
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="settings-list">
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <h4 class="setting-title">Mostrar precios</h4>
+                      <p class="setting-description">
+                        Los clientes podrán ver los precios de los productos
+                      </p>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        role="switch"
+                        checked
+                      />
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <h4 class="setting-title">Mostrar imágenes</h4>
+                      <p class="setting-description">
+                        Las imágenes de productos serán visibles
+                      </p>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        role="switch"
+                        checked
+                      />
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <h4 class="setting-title">Mostrar descripciones</h4>
+                      <p class="setting-description">
+                        Las descripciones de productos serán visibles
+                      </p>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        role="switch"
+                        checked
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menu Behavior -->
+            <div class="settings-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa fa-sliders me-2"></i>
+                  Comportamiento del Menú
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="settings-list">
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <h4 class="setting-title">Productos no disponibles</h4>
+                      <p class="setting-description">
+                        Mostrar productos no disponibles (atenuados)
+                      </p>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        role="switch"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <h4 class="setting-title">Auto-expandir categorías</h4>
+                      <p class="setting-description">
+                        Expandir todas las categorías al cargar el menú
+                      </p>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        role="switch"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <h4 class="setting-title">Mostrar contador de productos</h4>
+                      <p class="setting-description">
+                        Mostrar número de productos en cada categoría
+                      </p>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        role="switch"
+                        checked
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Layout Options -->
+            <div class="settings-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa fa-layer-group me-2"></i>
+                  Opciones de Diseño
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="layout-options">
+                  <div class="layout-option">
+                    <div class="layout-preview grid-layout"></div>
+                    <div class="layout-info">
+                      <h5>Cuadrícula</h5>
+                      <p>Productos en cuadrícula</p>
+                    </div>
+                    <div class="form-check">
+                      <input
+                        type="radio"
+                        name="layout"
+                        class="form-check-input"
+                        checked
+                      />
+                    </div>
+                  </div>
+
+                  <div class="layout-option">
+                    <div class="layout-preview list-layout"></div>
+                    <div class="layout-info">
+                      <h5>Lista</h5>
+                      <p>Productos en lista</p>
+                    </div>
+                    <div class="form-check">
+                      <input
+                        type="radio"
+                        name="layout"
+                        class="form-check-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="layout-option">
+                    <div class="layout-preview card-layout"></div>
+                    <div class="layout-info">
+                      <h5>Tarjetas</h5>
+                      <p>Productos en tarjetas</p>
+                    </div>
+                    <div class="form-check">
+                      <input
+                        type="radio"
+                        name="layout"
+                        class="form-check-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save Settings -->
+          <div class="save-settings">
+            <button class="btn btn-primary">
+              <i class="fa fa-save me-2"></i>
+              Guardar Configuración
+            </button>
+            <button class="btn btn-outline">
+              <i class="fa fa-undo me-2"></i>
+              Restaurar Valores por Defecto
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,47 @@
+{
+  "APP": {
+    "TITLE": "MenuQR Pro",
+    "DESCRIPTION": "Plataforma de menús digitales con QR"
+  },
+  "AUTH": {
+    "LOGIN": "Iniciar Sesión",
+    "REGISTER": "Registrarse",
+    "LOGOUT": "Cerrar Sesión",
+    "EMAIL": "Email",
+    "PASSWORD": "Contraseña",
+    "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
+    "NO_ACCOUNT": "¿No tienes una cuenta?",
+    "HAVE_ACCOUNT": "¿Ya tienes una cuenta?"
+  },
+  "DASHBOARD": {
+    "WELCOME": "Bienvenido",
+    "SCANS_TODAY": "Escaneos Hoy",
+    "TOTAL_VISITS": "Visitas Totales",
+    "PRODUCTS": "Productos",
+    "ACTIVE_PRODUCTS": "Productos Activos",
+    "QUICK_ACTIONS": "Acciones Rápidas",
+    "ADD_PRODUCT": "Agregar Producto",
+    "GENERATE_QR": "Generar QR",
+    "VIEW_MENU": "Ver Menú",
+    "VIEW_ANALYTICS": "Ver Analytics",
+    "RECENT_ACTIVITY": "Actividad Reciente",
+    "YOUR_PLAN": "Tu Plan",
+    "CHANGE_PLAN": "Cambiar Plan",
+    "VIEW_BILLING": "Ver facturación"
+  },
+  "PRODUCTS": {
+    "TITLE": "Productos",
+    "NEW_PRODUCT": "Nuevo Producto",
+    "EDIT_PRODUCT": "Editar Producto",
+    "NAME": "Nombre",
+    "DESCRIPTION": "Descripción",
+    "PRICE": "Precio",
+    "CATEGORY": "Categoría",
+    "AVAILABLE": "Disponible",
+    "TAGS": "Etiquetas",
+    "IMAGES": "Imágenes",
+    "DELETE_CONFIRM": "¿Eliminar este producto?",
+    "NO_PRODUCTS": "Aún no tienes productos",
+    "CREATE_FIRST": "Crear primer producto"
+  }
+}

@@ -1,0 +1,442 @@
+.plans-page {
+  padding: 1rem;
+  
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 2rem;
+  }
+  
+  // Page Header
+  .page-header {
+    margin-bottom: 1.5rem;
+    
+    @media (min-width: 768px) {
+      margin-bottom: 2rem;
+    }
+  }
+  
+  .header-content {
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 0.25rem;
+      
+      @media (min-width: 768px) {
+        font-size: 1.75rem;
+      }
+      
+      @media (min-width: 992px) {
+        font-size: 2rem;
+      }
+    }
+    
+    .page-subtitle {
+      color: #7f8c8d;
+      font-size: 0.95rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .current-plan-badge {
+      background: rgba(42, 157, 143, 0.1);
+      color: #2A9D8F;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+  
+  // Billing Toggle
+  .billing-toggle-section {
+    margin-bottom: 2rem;
+    
+    @media (min-width: 768px) {
+      margin-bottom: 3rem;
+    }
+  }
+  
+  .billing-toggle-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    max-width: 500px;
+    margin: 0 auto;
+    
+    .toggle-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      
+      @media (min-width: 768px) {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+      
+      .toggle-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #495057;
+      }
+    }
+    
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      
+      .toggle-option {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6c757d;
+        
+        &.active {
+          color: #2c3e50;
+          font-weight: 600;
+        }
+        
+        .discount-badge {
+          background: #2A9D8F;
+          color: white;
+          font-size: 0.75rem;
+          padding: 0.125rem 0.5rem;
+          border-radius: 50px;
+          margin-left: 0.5rem;
+        }
+      }
+      
+      .toggle-container {
+        position: relative;
+        
+        .toggle-input {
+          display: none;
+          
+          &:checked + .toggle-slider {
+            background-color: #2A9D8F;
+            
+            &::before {
+              transform: translateX(20px);
+            }
+          }
+        }
+        
+        .toggle-slider {
+          position: relative;
+          display: block;
+          width: 50px;
+          height: 24px;
+          background-color: #adb5bd;
+          border-radius: 34px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          
+          &::before {
+            content: '';
+            position: absolute;
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+          }
+        }
+      }
+    }
+  }
+  
+  // Loading State
+  .loading-container {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  // Plans Container
+  .plans-container {
+    margin-bottom: 3rem;
+  }
+  
+  .plans-grid {
+    display: grid;
+    gap: 1.5rem;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .plan-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    &.popular {
+      border: 2px solid #2A9D8F;
+      transform: scale(1.02);
+      
+      &:hover {
+        transform: translateY(-5px) scale(1.02);
+      }
+    }
+    
+    &.current {
+      border: 2px solid #3498db;
+    }
+    
+    .plan-badge {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2A9D8F;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 1rem;
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .current-badge {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #3498db;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 1rem;
+      border-radius: 50px;
+    }
+    
+    .plan-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e9ecef;
+      
+      .plan-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+      
+      .plan-description {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+      }
+      
+      .plan-price {
+        margin: 1rem 0;
+        
+        .price-amount {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #2c3e50;
+        }
+        
+        .price-interval {
+          font-size: 0.875rem;
+          color: #6c757d;
+        }
+      }
+      
+      .annual-savings {
+        font-size: 0.875rem;
+        color: #2A9D8F;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    
+    .plan-features {
+      flex: 1;
+      margin-bottom: 1.5rem;
+      
+      .features-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .feature-item {
+        font-size: 0.875rem;
+        padding: 0.375rem 0;
+        display: flex;
+        align-items: flex-start;
+        
+        &.included {
+          color: #2c3e50;
+          
+          i {
+            color: #2A9D8F;
+          }
+        }
+        
+        &.not-included {
+          color: #adb5bd;
+          
+          i {
+            color: #E76F51;
+          }
+        }
+      }
+    }
+    
+    .plan-limits {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      
+      .limits-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .limits-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+      }
+      
+      .limit-item {
+        font-size: 0.75rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+      }
+    }
+    
+    .plan-footer {
+      .btn {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 500;
+        
+        &.btn-success {
+          background: #2A9D8F;
+          border-color: #2A9D8F;
+          
+          &:hover {
+            background: #238277;
+            border-color: #238277;
+          }
+        }
+      }
+      
+      .insufficient-warning {
+        margin-top: 0.75rem;
+        font-size: 0.75rem;
+        color: #E76F51;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+  
+  // FAQ Section
+  .faq-section {
+    .faq-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      
+      .faq-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+      
+      .faq-subtitle {
+        color: #6c757d;
+        font-size: 0.875rem;
+      }
+    }
+    
+    .faq-grid {
+      display: grid;
+      gap: 1rem;
+      
+      @media (min-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+      }
+    }
+    
+    .faq-item {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1.25rem;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        border-color: #2A9D8F;
+      }
+      
+      .faq-question {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+      }
+      
+      .faq-answer {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin: 0;
+        line-height: 1.5;
+      }
+    }
+  }
+}

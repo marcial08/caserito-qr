@@ -1,0 +1,418 @@
+<div class="checkout-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Finalizar Compra</h1>
+        <p class="page-subtitle">Completa tu información para activar el plan</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="onCancel()">
+          <i class="fa fa-times me-2"></i>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <app-loading-spinner message="Cargando información del plan..."></app-loading-spinner>
+    </div>
+  }
+
+  @if (!isLoading && selectedPlan) {
+    <div class="checkout-content">
+      <div class="checkout-grid">
+        <!-- Left Column: Form -->
+        <div class="checkout-form-section">
+          <form [formGroup]="checkoutForm" class="checkout-form">
+            <!-- Billing Information -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fa fa-user me-2"></i>
+                Información de Facturación
+              </h3>
+              
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label required" for="fullName">
+                    Nombre Completo
+                  </label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    class="form-control"
+                    [class.is-invalid]="hasError('fullName', 'required')"
+                    formControlName="fullName"
+                    placeholder="Juan Pérez"
+                  />
+                  @if (hasError('fullName', 'required')) {
+                    <div class="invalid-feedback">
+                      El nombre es requerido
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="email">
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    class="form-control"
+                    [class.is-invalid]="hasError('email', 'required') || hasError('email', 'email')"
+                    formControlName="email"
+                    placeholder="juan@empresa.com"
+                  />
+                  @if (hasError('email', 'required')) {
+                    <div class="invalid-feedback">
+                      El email es requerido
+                    </div>
+                  }
+                  @if (hasError('email', 'email')) {
+                    <div class="invalid-feedback">
+                      Email inválido
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="company">
+                    Empresa (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    id="company"
+                    class="form-control"
+                    formControlName="company"
+                    placeholder="Mi Empresa S.L."
+                  />
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label required" for="address">
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    class="form-control"
+                    [class.is-invalid]="hasError('address', 'required')"
+                    formControlName="address"
+                    placeholder="Calle Principal 123"
+                  />
+                  @if (hasError('address', 'required')) {
+                    <div class="invalid-feedback">
+                      La dirección es requerida
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="city">
+                    Ciudad
+                  </label>
+                  <input
+                    type="text"
+                    id="city"
+                    class="form-control"
+                    [class.is-invalid]="hasError('city', 'required')"
+                    formControlName="city"
+                    placeholder="Madrid"
+                  />
+                  @if (hasError('city', 'required')) {
+                    <div class="invalid-feedback">
+                      La ciudad es requerida
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="postalCode">
+                    Código Postal
+                  </label>
+                  <input
+                    type="text"
+                    id="postalCode"
+                    class="form-control"
+                    [class.is-invalid]="hasError('postalCode', 'required')"
+                    formControlName="postalCode"
+                    placeholder="28001"
+                  />
+                  @if (hasError('postalCode', 'required')) {
+                    <div class="invalid-feedback">
+                      El código postal es requerido
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="country">
+                    País
+                  </label>
+                  <select
+                    id="country"
+                    class="form-control"
+                    [class.is-invalid]="hasError('country', 'required')"
+                    formControlName="country"
+                  >
+                    <option value="ES">España</option>
+                    <option value="PT">Portugal</option>
+                    <option value="FR">Francia</option>
+                    <option value="DE">Alemania</option>
+                    <option value="IT">Italia</option>
+                  </select>
+                  @if (hasError('country', 'required')) {
+                    <div class="invalid-feedback">
+                      El país es requerido
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fa fa-credit-card me-2"></i>
+                Método de Pago
+              </h3>
+              
+              <div class="payment-methods">
+                @for (method of paymentMethods; track method.id) {
+                  <div 
+                    class="payment-method-card"
+                    [class.selected]="selectedPaymentMethod === method.id"
+                    (click)="selectPaymentMethod(method.id)"
+                  >
+                    <div class="payment-method-icon">
+                      <i class="fa {{method.icon}}"></i>
+                    </div>
+                    <div class="payment-method-info">
+                      <div class="payment-method-name">{{method.name}}</div>
+                    </div>
+                    <div class="payment-method-check">
+                      <i class="fa fa-check" *ngIf="selectedPaymentMethod === method.id"></i>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Card Details (only show if card selected) -->
+              @if (selectedPaymentMethod === 'card') {
+                <div class="card-details">
+                  <div class="form-grid">
+                    <div class="form-group full-width">
+                      <label class="form-label required" for="cardNumber">
+                        Número de Tarjeta
+                      </label>
+                      <input
+                        type="text"
+                        id="cardNumber"
+                        class="form-control"
+                        [class.is-invalid]="hasError('cardNumber', 'required') || hasError('cardNumber', 'pattern')"
+                        formControlName="cardNumber"
+                        placeholder="1234 5678 9012 3456"
+                        (input)="formatCardNumber($event)"
+                        maxlength="19"
+                      />
+                      @if (hasError('cardNumber', 'required')) {
+                        <div class="invalid-feedback">
+                          El número de tarjeta es requerido
+                        </div>
+                      }
+                      @if (hasError('cardNumber', 'pattern')) {
+                        <div class="invalid-feedback">
+                          Número de tarjeta inválido (16 dígitos)
+                        </div>
+                      }
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label required" for="cardExpiry">
+                        Fecha de Expiración
+                      </label>
+                      <input
+                        type="text"
+                        id="cardExpiry"
+                        class="form-control"
+                        [class.is-invalid]="hasError('cardExpiry', 'required') || hasError('cardExpiry', 'pattern')"
+                        formControlName="cardExpiry"
+                        placeholder="MM/AA"
+                        (input)="formatExpiryDate($event)"
+                        maxlength="5"
+                      />
+                      @if (hasError('cardExpiry', 'required')) {
+                        <div class="invalid-feedback">
+                          La fecha de expiración es requerida
+                        </div>
+                      }
+                      @if (hasError('cardExpiry', 'pattern')) {
+                        <div class="invalid-feedback">
+                          Formato inválido (MM/AA)
+                        </div>
+                      }
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label required" for="cardCVC">
+                        CVC
+                      </label>
+                      <input
+                        type="password"
+                        id="cardCVC"
+                        class="form-control"
+                        [class.is-invalid]="hasError('cardCVC', 'required') || hasError('cardCVC', 'pattern')"
+                        formControlName="cardCVC"
+                        placeholder="123"
+                        maxlength="4"
+                      />
+                      @if (hasError('cardCVC', 'required')) {
+                        <div class="invalid-feedback">
+                          El CVC es requerido
+                        </div>
+                      }
+                      @if (hasError('cardCVC', 'pattern')) {
+                        <div class="invalid-feedback">
+                          CVC inválido (3-4 dígitos)
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Terms & Conditions -->
+            <div class="form-section">
+              <div class="form-check">
+                <input
+                  type="checkbox"
+                  id="acceptTerms"
+                  class="form-check-input"
+                  [class.is-invalid]="hasError('acceptTerms', 'required')"
+                  formControlName="acceptTerms"
+                />
+                <label class="form-check-label" for="acceptTerms">
+                  Acepto los <a href="/terms" target="_blank" class="text-link">Términos y Condiciones</a> y la <a href="/privacy" target="_blank" class="text-link">Política de Privacidad</a>
+                </label>
+                @if (hasError('acceptTerms', 'required')) {
+                  <div class="invalid-feedback">
+                    Debes aceptar los términos y condiciones
+                  </div>
+                }
+              </div>
+
+              <div class="form-check mt-3">
+                <input
+                  type="checkbox"
+                  id="subscribeNewsletter"
+                  class="form-check-input"
+                  formControlName="subscribeNewsletter"
+                />
+                <label class="form-check-label" for="subscribeNewsletter">
+                  Suscribirme al newsletter para recibir novedades y ofertas especiales
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right Column: Order Summary -->
+        <div class="checkout-summary-section">
+          <div class="order-summary">
+            <h3 class="section-title">
+              <i class="fa fa-receipt me-2"></i>
+              Resumen del Pedido
+            </h3>
+
+            <!-- Plan Details -->
+            <div class="summary-plan">
+              <div class="plan-info">
+                <h4 class="plan-name">{{selectedPlan.name}}</h4>
+                <p class="plan-description">
+                  Plan {{selectedPlan.interval === 'month' ? 'Mensual' : 'Anual'}}
+                </p>
+              </div>
+              <div class="plan-price">
+                <span class="price-amount">{{selectedPlan.price.toFixed(2)}}</span>
+                <span class="price-currency">{{selectedPlan.currency}}</span>
+              </div>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="price-breakdown">
+              <div class="breakdown-row">
+                <span class="breakdown-label">Subtotal</span>
+                <span class="breakdown-value">{{selectedPlan.price.toFixed(2)}} {{selectedPlan.currency}}</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-label">IVA (21%)</span>
+                <span class="breakdown-value">{{getVATAmount().toFixed(2)}} {{selectedPlan.currency}}</span>
+              </div>
+              <div class="breakdown-row total">
+                <span class="breakdown-label">Total</span>
+                <span class="breakdown-value">{{getTotalAmount().toFixed(2)}} {{selectedPlan.currency}}</span>
+              </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="payment-info">
+              <div class="info-item">
+                <i class="fa fa-sync-alt me-2"></i>
+                <span>Renovación automática {{selectedPlan.interval === 'month' ? 'mensual' : 'anual'}}</span>
+              </div>
+              <div class="info-item">
+                <i class="fa fa-shield-alt me-2"></i>
+                <span>Pago seguro y encriptado</span>
+              </div>
+              <div class="info-item">
+                <i class="fa fa-clock me-2"></i>
+                <span>Acceso inmediato después del pago</span>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              class="btn btn-primary btn-lg w-100"
+              (click)="onSubmit()"
+              [disabled]="isSubmitting || checkoutForm.invalid"
+            >
+              @if (isSubmitting) {
+                <span>
+                  <i class="fa fa-spinner fa-spin me-2"></i>
+                  Procesando...
+                </span>
+              } @else {
+                <span>
+                  <i class="fa fa-lock me-2"></i>
+                  Completar Pago
+                </span>
+              }
+            </button>
+
+            <!-- Security Badges -->
+            <div class="security-badges">
+              <div class="badge">
+                <i class="fa fa-lock"></i>
+                <span>SSL Seguro</span>
+              </div>
+              <div class="badge">
+                <i class="fa fa-shield-alt"></i>
+                <span>Protegido</span>
+              </div>
+            </div>
+
+            <!-- Help Text -->
+            <p class="help-text">
+              <i class="fa fa-info-circle me-2"></i>
+              Tu pago se procesará de forma segura. Puedes cancelar en cualquier momento.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

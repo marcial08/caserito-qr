@@ -1,0 +1,233 @@
+<div class="analytics-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Analíticas</h1>
+        <p class="page-subtitle">
+          Monitorea el rendimiento de tu menú digital
+        </p>
+      </div>
+      <div class="header-actions">
+        <select 
+          class="period-select" 
+          [(ngModel)]="selectedPeriod" 
+          (change)="onPeriodChange()">
+          <option value="7d">Últimos 7 días</option>
+          <option value="30d">Últimos 30 días</option>
+          <option value="90d">Últimos 90 días</option>
+          <option value="1y">Último año</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <app-loading-spinner message="Cargando analíticas..."></app-loading-spinner>
+    </div>
+  }
+
+  @if (!isLoading && analyticsData) {
+    <div class="analytics-content">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa fa-qrcode"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ analyticsData.total_scans }}</div>
+            <div class="stat-label">Total de escaneos</div>
+            <div class="stat-trend">
+              <i class="fa fa-arrow-up text-success me-1"></i>
+              <span class="text-success">12%</span> vs período anterior
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa fa-user"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ analyticsData.unique_scans }}</div>
+            <div class="stat-label">Escaneos únicos</div>
+            <div class="stat-trend">
+              <i class="fa fa-arrow-up text-success me-1"></i>
+              <span class="text-success">8%</span> vs período anterior
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa fa-chart-line"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ analyticsData.total_scans / 7 | number:'1.0-1' }}</div>
+            <div class="stat-label">Promedio diario</div>
+            <div class="stat-trend">
+              <i class="fa fa-arrow-up text-success me-1"></i>
+              <span class="text-success">15%</span> vs período anterior
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ analyticsData.peak_hours[0] }}</div>
+            <div class="stat-label">Hora pico</div>
+            <div class="stat-trend">
+              <i class="fa fa-history me-1"></i>
+              {{ analyticsData.peak_hours[1] }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <!-- Scan Trend Chart -->
+        <div class="chart-card">
+          <div class="card-header">
+            <h3 class="card-title">Tendencia de Escaneos</h3>
+            <p class="card-subtitle">{{ analyticsData.period }}</p>
+          </div>
+          <div class="card-body">
+            <div class="trend-chart">
+              <div class="chart-bars">
+                @for (day of analyticsData.scan_trend; track day.date) {
+                  <div class="chart-bar">
+                    <div class="bar-value" [style.height]="getBarHeight(day.count)">
+                      <span class="bar-tooltip">{{ day.count }}</span>
+                    </div>
+                    <div class="bar-label">{{ day.date }}</div>
+                  </div>
+                }
+              </div>
+              <div class="chart-axis">
+                <div class="axis-label">0</div>
+                <div class="axis-label">{{ getMaxScans() / 2 | number:'1.0-0' }}</div>
+                <div class="axis-label">{{ getMaxScans() | number:'1.0-0' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popular Products -->
+        <div class="chart-card">
+          <div class="card-header">
+            <h3 class="card-title">Productos Más Populares</h3>
+            <p class="card-subtitle">Por número de visualizaciones</p>
+          </div>
+          <div class="card-body">
+            <div class="products-list">
+              @for (product of analyticsData.popular_products; track product.name; let i = $index) {
+                <div class="product-item">
+                  <div class="product-rank">
+                    <span class="rank-number">{{ i + 1 }}</span>
+                  </div>
+                  <div class="product-info">
+                    <div class="product-name">{{ product.name }}</div>
+                    <div class="product-scans">{{ product.scans }} visualizaciones</div>
+                  </div>
+                  <div class="product-progress">
+                    <div class="progress-bar" 
+                         [style.width.%]="(product.scans / analyticsData.popular_products[0].scans) * 100">
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Performance -->
+      <div class="qr-performance-card">
+        <div class="card-header">
+          <h3 class="card-title">Rendimiento por QR</h3>
+          <p class="card-subtitle">Comparativa de escaneos por código QR</p>
+        </div>
+        <div class="card-body">
+          <div class="qr-performance-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre del QR</th>
+                  <th>Escaneos totales</th>
+                  <th>Último escaneo</th>
+                  <th>Tendencia</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="qr-name">
+                      <i class="fa fa-qrcode me-2"></i>
+                      Mesa 1
+                    </div>
+                  </td>
+                  <td>45</td>
+                  <td>Hace 2 horas</td>
+                  <td>
+                    <i class="fa fa-arrow-up text-success me-1"></i>
+                    <span class="text-success">+12%</span>
+                  </td>
+                  <td>
+                    <button class="btn-action btn-view">
+                      <i class="fa fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="qr-name">
+                      <i class="fa fa-qrcode me-2"></i>
+                      Barra Principal
+                    </div>
+                  </td>
+                  <td>38</td>
+                  <td>Hoy</td>
+                  <td>
+                    <i class="fa fa-arrow-up text-success me-1"></i>
+                    <span class="text-success">+8%</span>
+                  </td>
+                  <td>
+                    <button class="btn-action btn-view">
+                      <i class="fa fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="qr-name">
+                      <i class="fa fa-qrcode me-2"></i>
+                      Terraza
+                    </div>
+                  </td>
+                  <td>27</td>
+                  <td>Ayer</td>
+                  <td>
+                    <i class="fa fa-arrow-down text-danger me-1"></i>
+                    <span class="text-danger">-5%</span>
+                  </td>
+                  <td>
+                    <button class="btn-action btn-view">
+                      <i class="fa fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,196 @@
+<div class="products-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Productos</h1>
+        <p class="page-subtitle">
+          Gestiona todos los productos de tu menú
+          @if (planLimits) {
+            <span class="usage-badge">
+              {{ products.length }} / {{ planLimits.numeric?.max_products || planLimits.max_products }}
+            </span>
+          }
+        </p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" routerLink="/business/products/new">
+          <i class="fa fa-plus me-2"></i>
+          Nuevo Producto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-card">
+    <div class="filters-content">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Categoría</label>
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedCategory" 
+            (change)="filterProducts()">
+            <option value="">Todas las categorías</option>
+            @for (cat of categories; track cat.id) {
+              <option [value]="cat.id">
+                {{ cat.name }} ({{ cat.product_count || 0 }})
+              </option>
+            }
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label class="filter-label">Disponibilidad</label>
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedAvailability" 
+            (change)="filterProducts()">
+            <option value="">Todos</option>
+            <option value="available">Disponibles</option>
+            <option value="unavailable">No disponibles</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label class="filter-label">Buscar</label>
+          <div class="search-container">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Nombre del producto..."
+              [(ngModel)]="searchTerm"
+              (input)="filterProducts()"
+            />
+            <button class="search-button" type="button">
+              <i class="fa fa-search"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="products-container">
+    @if (isLoading) {
+      <div class="loading-container">
+        <app-loading-spinner message="Cargando productos..."></app-loading-spinner>
+      </div>
+    }
+
+    @if (!isLoading && filteredProducts.length === 0) {
+      <div class="empty-container">
+        <app-empty-state
+          icon="shopping-basket"
+          [title]="products.length === 0 ? 'Aún no tienes productos' : 'No hay resultados'"
+          [description]="products.length === 0 ? 'Agrega tu primer producto para comenzar' : 'Intenta con otros filtros'"
+          actionText="Crear primer producto"
+          actionIcon="plus"
+          (onAction)="router.navigate(['/business/products/new'])">
+        </app-empty-state>
+      </div>
+    }
+
+    @if (!isLoading && filteredProducts.length > 0) {
+      <div class="products-grid">
+        @for (product of paginatedProducts; track product.id) {
+          <div class="product-card">
+            <div class="product-image-container">
+              <div 
+                class="product-image"
+                [style.backgroundImage]="'url(' + (product.images?.[0]?.url || 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80') + ')'">
+                <span class="product-status" [class.available]="product.is_available">
+                  {{ product.is_available ? 'Disponible' : 'No disponible' }}
+                </span>
+                <div class="product-price">
+                  {{ product.base_price | currency: (product.currency || 'USD') }}
+                  @if (product.compare_price) {
+                    <span class="original-price">
+                      {{ product.compare_price | currency: (product.currency || 'USD') }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+            
+            <div class="product-content">
+              <h3 class="product-title">{{ product.name }}</h3>
+              
+              @if (product.description) {
+                <p class="product-description">
+                  {{ product.description | slice:0:80 }}{{ product.description.length > 80 ? '...' : '' }}
+                </p>
+              }
+              
+              <div class="product-tags">
+                @for (tag of product.tags.slice(0, 3); track tag) {
+                  <span class="product-tag">{{ tag }}</span>
+                }
+                @if (product.tags.length > 3) {
+                  <span class="product-tag-more">+{{ product.tags.length - 3 }}</span>
+                }
+              </div>
+              
+              <div class="product-footer">
+                <div class="product-category">
+                  <i class="fa fa-folder me-1"></i>
+                  {{ getCategoryName(product.category_id) }}
+                </div>
+                <div class="product-actions">
+                  <button 
+                    class="btn-action btn-edit" 
+                    [routerLink]="['/business/products', product.id, 'edit']"
+                    title="Editar producto">
+                    <i class="fa fa-edit"></i>
+                  </button>
+                  <button 
+                    class="btn-action btn-delete" 
+                    (click)="deleteProduct(product)"
+                    title="Eliminar producto">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (filteredProducts.length > 0 && !isLoading) {
+    <div class="pagination-container">
+      <nav class="pagination">
+        <button 
+          class="pagination-button prev" 
+          [disabled]="currentPage === 1"
+          (click)="prevPage()">
+          <i class="fa fa-chevron-left me-1"></i>
+          Anterior
+        </button>
+        
+        <div class="pagination-pages">
+          @for (page of getPageNumbers(); track page) {
+            <button 
+              class="pagination-page" 
+              [class.active]="page === currentPage"
+              (click)="goToPage(page)">
+              {{ page }}
+            </button>
+          }
+        </div>
+        
+        <button 
+          class="pagination-button next" 
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()">
+          Siguiente
+          <i class="fa fa-chevron-right ms-1"></i>
+        </button>
+      </nav>
+    </div>
+  }
+</div>

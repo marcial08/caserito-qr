@@ -1,0 +1,877 @@
+.business-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  
+  // ====== MÓVIL (Mobile First) ======
+  // Mobile Header
+  .mobile-header {
+    display: none; // Oculto por defecto (se muestra solo en móvil)
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: white;
+    border-bottom: 1px solid #e9ecef;
+    z-index: 1000; // Alto z-index para estar sobre todo
+    padding: 0 16px;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .mobile-header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .menu-toggle {
+      color: #2A9D8F;
+      padding: 0;
+      font-size: 1.25rem;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      
+      &:hover {
+        background-color: rgba(42, 157, 143, 0.1);
+      }
+    }
+    
+    .mobile-brand {
+      color: #2A9D8F;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .mobile-header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .business-info-mobile {
+      .business-name {
+        font-size: 0.875rem;
+        color: #495057;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+      }
+    }
+    
+    .notification-btn {
+      color: #6c757d;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      
+      &:hover {
+        background-color: rgba(108, 117, 125, 0.1);
+      }
+    }
+  }
+  
+  // Mobile Overlay
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999; // Debajo de sidebar pero sobre contenido
+    display: none;
+  }
+  
+  // Sidebar - Estilos base (móvil)
+  .sidebar {
+    width: 100%; // En móvil ocupa 100%
+    max-width: 280px;
+    background: #2c3e50;
+    color: white;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%); // Oculto por defecto en móvil
+    
+    &.collapsed {
+      width: 280px; // No colapsa en móvil
+    }
+    
+    &.mobile-open {
+      transform: translateX(0); // Visible cuando está abierto
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .sidebar-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 80px;
+    }
+    
+    .navbar-brand {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    
+    .sidebar-toggle,
+    .sidebar-close {
+      color: rgba(255, 255, 255, 0.8);
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+    }
+    
+    .sidebar-close {
+      display: none; // Solo visible en móvil
+    }
+    
+    .sidebar-nav {
+      list-style: none;
+      padding: 16px 0;
+      margin: 0;
+      flex: 1;
+      overflow-y: auto;
+      
+      li {
+        margin: 0;
+      }
+      
+      a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        
+        &:hover {
+          color: white;
+          background: rgba(255, 255, 255, 0.05);
+        }
+        
+        &.active {
+          color: white;
+          background: rgba(255, 255, 255, 0.1);
+          border-left-color: #2A9D8F;
+        }
+        
+        i {
+          min-width: 24px;
+          text-align: center;
+          font-size: 1rem;
+        }
+        
+        span {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+    
+    .sidebar-footer {
+      padding: 16px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: #2A9D8F;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .user-name {
+      font-weight: 500;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .user-role {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: capitalize;
+    }
+    
+    .logout-btn {
+      color: rgba(255, 255, 255, 0.7);
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      flex-shrink: 0;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+    }
+  }
+  
+  // Main Content - Estilos base (móvil)
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    transition: margin-left 0.3s ease;
+    
+    // Estado móvil
+    &.mobile {
+      margin-left: 0;
+      margin-top: 60px; // Compensar header móvil
+    }
+    
+    .topbar {
+      display: none; // Oculto en móvil
+      background: white;
+      border-bottom: 1px solid #e9ecef;
+      padding: 16px 32px;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .page-title {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    
+    .business-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8f9fa;
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+    
+    .business-name {
+      font-weight: 500;
+      color: #495057;
+    }
+    
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 50px;
+      background: #2A9D8F;
+      color: white;
+    }
+    
+    .notifications {
+      .btn-link {
+        color: #6c757d;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        
+        &:hover {
+          background-color: rgba(108, 117, 125, 0.1);
+        }
+      }
+    }
+    
+    .content-wrapper {
+      flex: 1;
+      padding: 16px;
+      background-color: #f8f9fa;
+      overflow-y: auto;
+      width: 100%;
+      
+      // Asegurar que el contenido interno ocupe el 100%
+      > * {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  }
+  
+  // ====== TABLET (768px - 1023px) ======
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .mobile-header {
+      display: none !important; // Ocultar en tablet
+    }
+    
+    .mobile-overlay {
+      display: none !important;
+    }
+    
+    .sidebar {
+      position: relative; // Cambiar a relativo en tablet/desktop
+      transform: translateX(0) !important; // Siempre visible
+      width: 220px;
+      max-width: 220px;
+      box-shadow: none;
+      
+      &.collapsed {
+        width: 70px;
+        max-width: 70px;
+      }
+      
+      &.mobile-open {
+        transform: translateX(0) !important;
+      }
+      
+      .sidebar-header {
+        min-height: 80px;
+       // padding: 20px 24px;
+      }
+      
+      .sidebar-close {
+        display: none !important; // Ocultar botón cerrar
+      }
+      
+      .sidebar-toggle {
+        display: flex; // Mostrar toggle en tablet/desktop
+      }
+    }
+    
+    .main-content {
+      margin-left: 220px;
+      margin-top: 0 !important; // Quitar margen superior
+      
+      &.sidebar-collapsed {
+        margin-left: 70px;
+      }
+      
+      &.mobile {
+        margin-left: 220px; // Override estado móvil
+        margin-top: 0 !important;
+        
+        &.sidebar-collapsed {
+          margin-left: 70px;
+        }
+      }
+      
+      .topbar {
+        display: flex; // Mostrar topbar en tablet/desktop
+      }
+      
+      .content-wrapper {
+        padding: 24px;
+        
+        // Ajuste para sidebar colapsada
+        .sidebar-collapsed & {
+          padding-left: 20px;
+          padding-right: 24px;
+        }
+      }
+      
+      .topbar {
+        .sidebar-collapsed & {
+          padding-left: 20px;
+        }
+      }
+    }
+  }
+  
+  // ====== DESKTOP (1024px y superior) ======
+  @media (min-width: 1024px) {
+    .mobile-header {
+      display: none !important;
+    }
+    
+    .mobile-overlay {
+      display: none !important;
+    }
+    
+    .sidebar {
+      position: relative;
+      transform: translateX(0) !important;
+      width: 250px;
+      max-width: 250px;
+      
+      &.collapsed {
+        width: 70px;
+        max-width: 70px;
+      }
+      
+      .sidebar-header {
+        min-height: 80px;
+        padding: 20px 24px;
+      }
+      
+      .sidebar-close {
+        display: none !important;
+      }
+      
+      .sidebar-toggle {
+        display: flex;
+      }
+      
+      .sidebar-nav a {
+        padding: 14px 24px;
+      }
+    }
+    
+    .main-content {
+      margin-left: 250px;
+      margin-top: 0 !important;
+      
+      &.sidebar-collapsed {
+        margin-left: 70px;
+      }
+      
+      &.mobile {
+        margin-left: 250px;
+        margin-top: 0 !important;
+        
+        &.sidebar-collapsed {
+          margin-left: 70px;
+        }
+      }
+      
+      .topbar {
+        display: flex;
+        padding: 16px 32px;
+      }
+      
+      .content-wrapper {
+        padding: 32px;
+        
+        // IMPORTANTE: Ajuste específico para sidebar colapsada
+        .sidebar-collapsed & {
+          padding-left: 20px;
+          padding-right: 32px;
+        }
+      }
+      
+      .topbar {
+        .sidebar-collapsed & {
+          padding-left: 20px;
+          padding-right: 32px;
+        }
+      }
+    }
+  }
+  
+  // ====== PANTALLAS MUY GRANDES (1440px+) ======
+  @media (min-width: 1440px) {
+    .main-content {
+      .content-wrapper {
+        padding: 32px 48px;
+        
+        .sidebar-collapsed & {
+          padding-left: 24px;
+          padding-right: 48px;
+        }
+      }
+      
+      .topbar {
+        padding: 16px 48px;
+        
+        .sidebar-collapsed & {
+          padding-left: 24px;
+          padding-right: 48px;
+        }
+      }
+    }
+  }
+  
+  // ====== PANTALLAS MUY PEQUEÑAS (Menos de 360px) ======
+  @media (max-width: 359px) {
+    .mobile-header {
+      padding: 0 12px;
+      height: 56px;
+      
+      .mobile-brand {
+        font-size: 1rem;
+      }
+      
+      .business-info-mobile .business-name {
+        max-width: 100px;
+      }
+    }
+    
+    .sidebar {
+      max-width: 260px;
+      
+      .sidebar-header {
+        padding: 16px 20px;
+        min-height: 60px;
+      }
+      
+      .sidebar-nav a {
+        padding: 12px 20px;
+      }
+      
+      .sidebar-footer {
+        padding: 16px 20px;
+      }
+    }
+    
+    .main-content {
+      &.mobile {
+        margin-top: 56px;
+      }
+      
+      .content-wrapper {
+        padding: 12px;
+      }
+    }
+  }
+}
+
+// ====== ESTILOS ESPECÍFICOS PARA CONTENIDO INTERNO ======
+// Para asegurar que los componentes dentro del router-outlet sean responsive
+.content-wrapper {
+  // Reset básico para contenido interno
+  > * {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  // Contenedores comunes
+  .container,
+  .container-fluid {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  // Grid systems
+  .row {
+    margin-left: 0;
+    margin-right: 0;
+    
+    > .col,
+    > [class*="col-"] {
+      padding-left: 0;
+      padding-right: 0;
+      width: 100%;
+    }
+  }
+  
+  // Cards y contenedores
+  .card,
+  .card-body,
+  .panel,
+  .box {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  // Tablas
+  table,
+  .table {
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+  }
+  
+  // Formularios
+  form,
+  .form-group,
+  .form-control {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+// ====== AJUSTES ESPECÍFICOS POR DISPOSITIVO ======
+
+// Tablet landscape y desktop pequeño
+@media (max-width: 1199px) {
+  .content-wrapper {
+    .row {
+      flex-wrap: wrap;
+      
+      > .col,
+      > [class*="col-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 16px;
+      }
+    }
+  }
+}
+
+// Tablet portrait
+@media (max-width: 991px) {
+  .content-wrapper {
+    .card-deck,
+    .card-group {
+      flex-direction: column;
+      
+      .card {
+        margin-bottom: 16px;
+      }
+    }
+  }
+}
+
+// Móvil
+@media (max-width: 767px) {
+  .content-wrapper {
+    // Espaciado reducido en móvil
+    > * {
+      margin-bottom: 16px;
+    }
+    
+    // Tablas responsivas
+    table,
+    .table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    
+    // Formularios apilados
+    .form-inline {
+      flex-direction: column;
+      align-items: stretch;
+      
+      .form-control,
+      .btn {
+        width: 100%;
+        margin-bottom: 8px;
+      }
+    }
+    
+    // Botones full width en móvil
+    .btn {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+  }
+}
+
+// Scrollbar styling para sidebar
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+// Scrollbar styling para content-wrapper
+.content-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.content-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.content-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+// ====== UTILIDADES RESPONSIVE ADICIONALES ======
+@media print {
+  .business-layout {
+    .mobile-header,
+    .sidebar,
+    .topbar {
+      display: none !important;
+    }
+    
+    .main-content {
+      margin-left: 0 !important;
+      margin-top: 0 !important;
+      
+      .content-wrapper {
+        padding: 0 !important;
+        background: white !important;
+      }
+    }
+  }
+}
+
+// Modo alto contraste para accesibilidad
+@media (prefers-contrast: high) {
+  .business-layout {
+    .sidebar {
+      background: #000;
+      border-right: 3px solid #fff;
+    }
+    
+    .sidebar-nav a {
+      border-left-width: 4px;
+    }
+  }
+}
+
+// Modo reducido de movimiento para accesibilidad
+@media (prefers-reduced-motion: reduce) {
+  .business-layout {
+    .sidebar,
+    .main-content,
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+
+// ====== DEBUG MODE ======
+.debug-mode {
+  // Borde rojo para TODO
+  * {
+    border: 1px solid rgba(255, 0, 0, 0.2) !important;
+  }
+  
+  // Borde AZUL para elementos con padding-left
+  *[style*="padding-left"],
+  *[class*="padding-left"],
+  *[class*="pl-"],
+  *[class*="px-"] {
+    border: 2px solid blue !important;
+    background-color: rgba(0, 0, 255, 0.05) !important;
+  }
+  
+  // Borde VERDE para elementos con margin-left  
+  *[style*="margin-left"],
+  *[class*="margin-left"],
+  *[class*="ml-"] {
+    border: 2px solid green !important;
+    background-color: rgba(0, 255, 0, 0.05) !important;
+  }
+  
+  // Borde NARANJA para contenedores
+  .container,
+  .container-fluid,
+  .row,
+  [class*="col-"] {
+    border: 2px solid orange !important;
+    background-color: rgba(255, 165, 0, 0.05) !important;
+  }
+  
+  // Resaltar ESPECIALMENTE el problema
+  *:has(> *[style*="padding-left"]),
+  *:has(> *[class*="padding-left"]) {
+    border: 3px solid purple !important;
+    background-color: rgba(128, 0, 128, 0.1) !important;
+  }
+}
+
+// ====== SOLUCIÓN TEMPORAL MIENTRAS DEBUGGEAS ======
+// Agrega esto después del debug mode
+.debug-mode {
+  ::ng-deep {
+    // Reset nuclear para el componente interno
+    > *:not(router-outlet) {
+      all: initial !important;
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      
+      > * {
+        padding-left: 0 !important;
+        margin-left: 0 !important;
+      }
+    }
+  }
+}
