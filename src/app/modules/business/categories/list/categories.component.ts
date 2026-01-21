@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BusinessService } from '../../../core/services/business.service';
-import { Category } from '../../../core/models/menu.model';
-import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { BusinessService } from '../../../../core/services/business.service';
+import { Category } from '../../../../core/models/menu.model';
+import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { ToastrService } from 'ngx-toastr';
+import { CategoryService } from '../../../../core/services/category.service';
 
 @Component({
   selector: 'app-categories',
@@ -36,6 +37,7 @@ export class CategoriesComponent implements OnInit {
   totalPages = 1;
 
   constructor(
+    private categoryService: CategoryService,
     private businessService: BusinessService,
     private toastr: ToastrService,
     public router: Router,
@@ -48,7 +50,7 @@ export class CategoriesComponent implements OnInit {
   loadData(): void {
     this.isLoading = true;
 
-    this.businessService.getCategories().subscribe((categories) => {
+    this.categoryService.getCategories().subscribe((categories) => {
       this.categories = categories.filter(cat => cat.is_active);
       this.filteredCategories = [...this.categories];
       this.updatePagination();

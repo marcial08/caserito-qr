@@ -45,7 +45,15 @@ export const routes: Routes = [
       },
       {
         path: 'categories',
-        loadComponent: () => import('./modules/business/categories/categories.component').then(m => m.CategoriesComponent)
+        loadComponent: () => import('./modules/business/categories/list/categories.component').then(m => m.CategoriesComponent)
+      },
+            {
+        path: 'categories/new',
+        loadComponent: () => import('./modules/business/categories/category-form/category-form.component').then(m => m.CategoryFormComponent)
+      },
+            {
+        path: 'categories/:id/edit',
+        loadComponent: () => import('./modules/business/categories/category-form/category-form.component').then(m => m.CategoryFormComponent)
       },
       {
         path: 'products',

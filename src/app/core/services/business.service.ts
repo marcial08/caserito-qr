@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject } from 'rxjs';
+import { Observable, of, BehaviorSubject, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import { Business, BusinessFormData } from '../models/business.model';
 import { Category, Product } from '../models/menu.model';
@@ -127,9 +127,9 @@ export class BusinessService {
     );
   }
 
-  getCategories(): Observable<Category[]> {
-    return of(this.mockCategories).pipe(delay(700));
-  }
+  // getCategories(): Observable<Category[]> {
+  //   return of(this.mockCategories).pipe(delay(700));
+  // }
 
   createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Observable<Category> {
     const newCategory: Category = {
@@ -253,4 +253,38 @@ export class BusinessService {
       analytics_days: 90 // Ya está en uso
     });
   }
+
+  getCategories(): Observable<Category[]> {
+  // Temporal: datos mock
+  const mockCategories: Category[] = [
+    {
+      id: '1',
+      name: 'Entradas',
+      description: 'Platos para comenzar tu comida',
+      display_order: 1,
+      is_active: true,
+      cover_image_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=600&q=80',
+      product_count: 8,
+      created_at: new Date(),
+      updated_at: new Date(),
+      business_id: 'business-123'
+    },
+    {
+      id: '2',
+      name: 'Platos Principales',
+      description: 'Nuestros platos más destacados',
+      display_order: 2,
+      is_active: true,
+      cover_image_url: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=600&q=80',
+      product_count: 15,
+      created_at: new Date(),
+      updated_at: new Date(), 
+      business_id: 'business-123'
+    },
+    // ... más categorías
+  ];
+  
+  return of(mockCategories);
+}
+
 }

@@ -69,6 +69,7 @@
     @if (!isLoading && filteredCategories.length > 0) {
       <div class="categories-grid">
         @for (category of paginatedCategories; track category.id) {
+          
           <div class="category-card">
             <div class="category-image-container">
               <div 
