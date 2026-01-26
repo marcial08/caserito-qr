@@ -9,6 +9,7 @@
                     @if (planLimits) {
                     <span class="usage-badge">
                         {{ qrCodes.length }} / {{ planLimits.numeric?.max_qr_codes || planLimits.max_qr_codes }}
+                        <span class="usage-text">({{ stats.usagePercentage }}%)</span>
                     </span>
                     }
                 </p>
@@ -20,6 +21,30 @@
                 </button>
             </div>
         </div>
+
+        <!-- Stats -->
+        @if (stats.total > 0) {
+        <div class="stats-container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total QR</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.general }}</div>
+                    <div class="stat-label">Generales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.tables }}</div>
+                    <div class="stat-label">Mesas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.usagePercentage }}%</div>
+                    <div class="stat-label">Uso del plan</div>
+                </div>
+            </div>
+        </div>
+        }
     </div>
 
     <!-- Filters -->
@@ -27,10 +52,27 @@
         <div class="filters-content">
             <div class="filters-grid">
                 <div class="filter-group">
+                    <label class="filter-label">Tipo de QR</label>
+                    <div class="filter-buttons">
+                        <button class="filter-btn" [class.active]="filterType === 'all'" (click)="filterByType('all')">
+                            Todos ({{ stats.total }})
+                        </button>
+                        <button class="filter-btn" [class.active]="filterType === 'general'"
+                            (click)="filterByType('general')">
+                            Generales ({{ stats.general }})
+                        </button>
+                        <button class="filter-btn" [class.active]="filterType === 'table'"
+                            (click)="filterByType('table')">
+                            Mesas ({{ stats.tables }})
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-group">
                     <label class="filter-label">Buscar códigos QR</label>
                     <div class="search-container">
-                        <input type="text" class="search-input" placeholder="Nombre del QR..." [(ngModel)]="searchTerm"
-                            (input)="filterQRCodes()" />
+                        <input type="text" class="search-input" placeholder="Buscar por nombre, mesa o ubicación..."
+                            [(ngModel)]="searchTerm" (input)="filterQRCodes()" />
                         <button class="search-button" type="button">
                             <i class="fa fa-search"></i>
                         </button>
@@ -52,7 +94,7 @@
         <div class="empty-container">
             <app-empty-state icon="qrcode"
                 [title]="qrCodes.length === 0 ? 'Aún no tienes códigos QR' : 'No hay resultados'"
-                [description]="qrCodes.length === 0 ? 'Genera tu primer código QR para que los clientes accedan a tu menú' : 'Intenta con otros términos de búsqueda'"
+                [description]="qrCodes.length === 0 ? 'Genera tu primer código QR para que los clientes accedan a tu menú' : 'Intenta con otros términos de búsqueda o cambia el filtro'"
                 actionText="Generar primer QR" actionIcon="plus"
                 (onAction)="router.navigate(['/business/qr-codes/new'])">
             </app-empty-state>
@@ -65,11 +107,21 @@
             <div class="qr-code-card">
                 <div class="qr-code-header">
                     <div class="qr-code-info">
-                        <h3 class="qr-code-title">{{ qr.name }}</h3>
-                        <p class="qr-code-slug">{{ qr.slug }}</p>
+                        <div class="qr-code-title-row">
+                            <h3 class="qr-code-title">{{ qr.name }}</h3>
+                            <span class="qr-type-badge" [class]="getQRTypeClass(qr)">
+                                {{ getQRTypeBadge(qr) }}
+                            </span>
+                        </div>
+                        <p class="qr-code-slug">
+                            {{ qr.slug }}
+                            @if (getLocationText(qr)) {
+                            <span class="qr-location">{{ getLocationText(qr) }}</span>
+                            }
+                        </p>
                     </div>
                     <div class="qr-code-actions">
-                        <button class="btn-action btn-download" (click)="downloadQR(qr)" title="Descargar QR">
+                        <button class="btn-action btn-download" (click)="downloadQRAsPNG(qr)" title="Descargar QR">
                             <i class="fa fa-download"></i>
                         </button>
                         <button class="btn-action btn-copy" (click)="copyURL(qr)" title="Copiar URL">
@@ -78,17 +130,33 @@
                     </div>
                 </div>
 
-                <div class="qr-code-preview">
-                    <div class="qr-code-placeholder">
-                        <div class="qr-code-icon">
-                            <i class="fa fa-qrcode"></i>
-                        </div>
-                        <div class="qr-code-color" [style.backgroundColor]="qr.qr_color"></div>
-                        <div class="qr-code-logo" [class.hidden]="!qr.logo_enabled">
-                            <i class="fa fa-store"></i>
-                        </div>
-                    </div>
+               <div class="qr-code-preview">
+    @if (qr.qr_image_url) {
+        <!-- Mostrar imagen real del QR -->
+        <img 
+            [src]="qr.qr_image_url" 
+            [alt]="qr.name" 
+            class="qr-code-image"
+            loading="lazy"
+        />
+    } @else {
+        <!-- Mostrar placeholder solo si no hay imagen -->
+        <div class="qr-code-placeholder">
+            <div class="qr-code-icon">
+                <i class="fa fa-qrcode"></i>
+            </div>
+            <div class="qr-code-color" [style.backgroundColor]="qr.qr_color"></div>
+            @if (qr.type === 'table') {
+                <div class="qr-table-number">
+                    {{ qr.table_number }}
                 </div>
+            }
+            <div class="qr-code-logo" [class.hidden]="!qr.logo_enabled">
+                <i class="fa fa-store"></i>
+            </div>
+        </div>
+    }
+</div>
 
                 <div class="qr-code-content">
                     <div class="qr-code-stats">
@@ -110,7 +178,6 @@
                     </div>
 
                     <div class="qr-code-footer">
-                        <!-- En la línea donde se muestra la URL -->
                         <div class="qr-code-url">
                             <i class="fa fa-link me-1"></i>
                             <a [href]="getQRUrl(qr)" target="_blank" class="url-link">
@@ -137,6 +204,9 @@
     <!-- Pagination -->
     @if (filteredQRCodes.length > 0 && !isLoading) {
     <div class="pagination-container">
+        <div class="pagination-info">
+            {{ getShowingRange() }}
+        </div>
         <nav class="pagination">
             <button class="pagination-button prev" [disabled]="currentPage === 1" (click)="prevPage()">
                 <i class="fa fa-chevron-left me-1"></i>

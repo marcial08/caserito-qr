@@ -33,6 +33,9 @@ interface Cart {
   styleUrls: ['./menu-view.component.scss']
 })
 export class MenuViewComponent implements OnInit, OnDestroy {
+number(arg0: number|undefined): number {
+throw new Error('Method not implemented.');
+}
   categories: Category[] = [];
   products: Product[] = [];
   filteredProducts: Product[] = [];
@@ -42,7 +45,7 @@ export class MenuViewComponent implements OnInit, OnDestroy {
    currentYear = new Date().getFullYear();
   
   // Active category
-  activeCategoryId: string = 'all';
+  activeCategoryId: number = -1;
   searchTerm: string = '';
   
   // Cart
@@ -125,18 +128,18 @@ export class MenuViewComponent implements OnInit, OnDestroy {
           .filter(cat => cat.is_active)
           .sort((a, b) => a.display_order - b.display_order);
         
-        this.businessService.getProducts().subscribe({
-          next: (products) => {
-            this.products = products.filter(p => p.is_available);
-            this.filteredProducts = [...this.products];
-            this.isLoading = false;
-          },
-          error: (error) => {
-            console.error('Error loading products:', error);
-            this.toastr.error('Error al cargar el menú');
-            this.isLoading = false;
-          }
-        });
+        // this.businessService.getProducts().subscribe({
+        //   next: (products) => {
+        //     this.products = products.filter(p => p.is_available);
+        //     this.filteredProducts = [...this.products];
+        //     this.isLoading = false;
+        //   },
+        //   error: (error:any) => {
+        //     console.error('Error loading products:', error);
+        //     this.toastr.error('Error al cargar el menú');
+        //     this.isLoading = false;
+        //   }
+        // });
       },
       error: (error) => {
         console.error('Error loading categories:', error);
@@ -147,7 +150,7 @@ export class MenuViewComponent implements OnInit, OnDestroy {
   }
 
   // Filtering
-  filterByCategory(categoryId: string): void {
+  filterByCategory(categoryId: number): void {
     this.activeCategoryId = categoryId;
     this.applyFilters();
   }
@@ -165,7 +168,7 @@ export class MenuViewComponent implements OnInit, OnDestroy {
     let filtered = [...this.products];
 
     // Filter by category
-    if (this.activeCategoryId !== 'all') {
+    if (this.activeCategoryId !== -1) {
       filtered = filtered.filter(product => product.category_id === this.activeCategoryId);
     }
 
@@ -182,12 +185,12 @@ export class MenuViewComponent implements OnInit, OnDestroy {
     this.filteredProducts = filtered;
   }
 
-  getCategoryName(categoryId: string): string {
+  getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category?.name || 'Sin categoría';
   }
 
-  getProductsByCategory(categoryId: string): Product[] {
+  getProductsByCategory(categoryId: number): Product[] {
     return this.filteredProducts.filter(p => p.category_id === categoryId);
   }
 

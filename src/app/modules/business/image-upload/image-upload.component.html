@@ -1,0 +1,45 @@
+<div class="image-upload-container">
+  <!-- Upload Area -->
+  <div class="upload-area" (click)="fileInput.click()">
+    <input
+      type="file"
+      #fileInput
+      (change)="onFileSelected($event)"
+      multiple
+      [accept]="acceptTypes"
+      style="display: none"
+    />
+    <div class="upload-content">
+      <i class="fa fa-cloud-upload-alt fa-2x text-muted mb-3"></i>
+      <p class="upload-text">Arrastra imágenes o haz clic para subir</p>
+      <p class="upload-subtext">
+        {{ acceptTypes }} (Máx. {{ maxFileSize }}MB cada una)
+        @if (maxFiles) {
+          <br>
+          <small>Máximo {{ maxFiles }} imágenes</small>
+        }
+      </p>
+    </div>
+  </div>
+
+  <!-- Image Previews -->
+  @if (currentImages && currentImages.length > 0) {
+    <div class="image-preview-grid mt-3">
+      @for (image of currentImages; track image.id; let i = $index) {
+        <div class="image-preview-item" [class.primary]="image.is_primary">
+          <img [src]="image.url" [alt]="image.alt_text || 'Imagen'" class="preview-image" />
+          <div class="preview-overlay">
+            @if (!image.is_primary) {
+              <button type="button" class="btn-action" (click)="setAsPrimary(i)" title="Establecer como principal">
+                <i class="fa fa-star"></i>
+              </button>
+            }
+            <button type="button" class="btn-action" (click)="removeImage(i)" title="Eliminar imagen">
+              <i class="fa fa-trash text-danger"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

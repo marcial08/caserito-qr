@@ -1,150 +1,76 @@
 <div class="business-layout">
-  <!-- Mobile Header -->
-  <header class="mobile-header" *ngIf="isMobile">
-    <div class="mobile-header-left">
-      <button class="btn btn-link menu-toggle" (click)="toggleSidebar()">
-        <i class="fa fa-bars"></i>
-      </button>
-      <a class="mobile-brand" routerLink="/business/dashboard">
-        <i class="fa fa-qrcode me-2"></i>
-        <span>MenuQR</span>
-      </a>
+  <header class="mobile-top-bar" *ngIf="isMobile">
+    <button class="btn-icon" (click)="toggleSidebar()">
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="brand-name">
+      <i class="fa fa-qrcode text-primary"></i>
+      <span>MenuQR</span>
     </div>
-    <div class="mobile-header-right">
-      <div class="business-info-mobile">
-        <span class="business-name">{{ currentBusiness?.name }}</span>
-      </div>
-      <button class="btn btn-link notification-btn">
-        <i class="fa fa-bell"></i>
-      </button>
-    </div>
+    <div class="user-avatar-small">{{ currentUser?.name?.charAt(0) }}</div>
   </header>
 
-  <!-- Mobile Overlay -->
-  <div class="mobile-overlay" *ngIf="isMobile && mobileMenuOpen" (click)="closeMobileMenu()"></div>
-
-  <!-- Sidebar -->
-  <nav class="sidebar" [class.collapsed]="sidebarCollapsed && !isMobile" [class.mobile-open]="mobileMenuOpen && isMobile">
+  <aside class="sidebar" 
+    [class.mobile-open]="mobileMenuOpen && isMobile"
+    [class.collapsed]="sidebarCollapsed && !isMobile">
+    
     <div class="sidebar-header">
-      <a class="navbar-brand" routerLink="/business/dashboard" (click)="closeMobileMenu()">
-        <i class="fa fa-qrcode me-2"></i>
-        @if (!sidebarCollapsed || isMobile) {
-          <span>MenuQR Pro</span>
-        }
-      </a>
-      @if (!isMobile) {
-        <button class="btn btn-link sidebar-toggle" (click)="toggleSidebar()">
-          <i class="fa fa-bars"></i>
-        </button>
-      } @else {
-        <button class="btn btn-link sidebar-close" (click)="closeMobileMenu()">
-          <i class="fa fa-times"></i>
-        </button>
-      }
-    </div>
-    
-    <ul class="sidebar-nav">
-      <li>
-        <a routerLink="/business/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">
-          <i class="fa fa-dashboard me-3"></i>
-          @if (!sidebarCollapsed || isMobile) {
-            <span>Dashboard</span>
-          }
-        </a>
-      </li>
-      <li>
-        <a routerLink="/business/menu" routerLinkActive="active" (click)="closeMobileMenu()">
-          <i class="fa fa-cutlery me-3"></i>
-          @if (!sidebarCollapsed || isMobile) {
-            <span>Menú</span>
-          }
-        </a>
-      </li>
-      <li>
-        <a routerLink="/business/categories" routerLinkActive="active" (click)="closeMobileMenu()">
-          <i class="fa fa-folder me-3"></i>
-          @if (!sidebarCollapsed || isMobile) {
-            <span>Categorías</span>
-          }
-        </a>
-      </li>
-      <li>
-        <a routerLink="/business/products" routerLinkActive="active" (click)="closeMobileMenu()">
-          <i class="fa fa-shopping-basket me-3"></i>
-          @if (!sidebarCollapsed || isMobile) {
-            <span>Productos</span>
-          }
-        </a>
-      </li>
-      <li>
-        <a routerLink="/business/qr-codes" routerLinkActive="active" (click)="closeMobileMenu()">
-          <i class="fa fa-qrcode me-3"></i>
-          @if (!sidebarCollapsed || isMobile) {
-            <span>Códigos QR</span>
-          }
-        </a>
-      </li>
-      <li>
-        <a routerLink="/business/analytics" routerLinkActive="active" (click)="closeMobileMenu()">
-          <i class="fa fa-chart-bar me-3"></i>
-          @if (!sidebarCollapsed || isMobile) {
-            <span>Analytics</span>
-          }
-        </a>
-      </li>
-      <li>
-        <a routerLink="/business/settings" routerLinkActive="active" (click)="closeMobileMenu()">
-          <i class="fa fa-cog me-3"></i>
-          @if (!sidebarCollapsed || isMobile) {
-            <span>Configuración</span>
-          }
-        </a>
-      </li>
-    </ul>
-    
-    @if (!sidebarCollapsed || isMobile) {
-      <div class="sidebar-footer">
-        <div class="user-info">
-          <div class="user-avatar">
-            {{ currentUser?.name?.charAt(0) || 'U' }}
-          </div>
-          <div class="user-details">
-            <div class="user-name">{{ currentUser?.name }}</div>
-            <div class="user-role">{{ currentUser?.role }}</div>
-          </div>
-          <button class="btn btn-link logout-btn" (click)="logout()">
-            <i class="fa fa-sign-out"></i>
-          </button>
-        </div>
+      <div class="logo-wrapper">
+        <i class="fa fa-qrcode logo-icon"></i>
+        <span class="logo-text" *ngIf="!sidebarCollapsed || isMobile">MenuQR Pro</span>
       </div>
-    }
-  </nav>
-  
-  <!-- Main Content -->
-  <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed && !isMobile" [class.mobile]="isMobile">
-    @if (!isMobile) {
-      <header class="topbar">
-        <div class="topbar-left">
-          <h1 class="page-title">{{ pageTitle }}</h1>
+      <button class="btn-close-menu" (click)="closeMobileMenu()" *ngIf="isMobile">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a *ngFor="let item of menuItems" 
+         [routerLink]="item.path" 
+         routerLinkActive="active"
+         (click)="isMobile && closeMobileMenu()"
+         class="nav-item">
+        <i [class]="item.icon"></i>
+        <span class="nav-label" *ngIf="!sidebarCollapsed || isMobile">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="avatar">{{ currentUser?.name?.charAt(0) }}</div>
+        <div class="info" *ngIf="!sidebarCollapsed || isMobile">
+          <p class="name">{{ currentUser?.name }}</p>
+          <p class="plan">{{ currentPlan }}</p>
         </div>
-        <div class="topbar-right">
-          <div class="business-info">
-            <span class="business-name">{{ currentBusiness?.name }}</span>
-            <span class="badge bg-primary">{{ currentPlan }}</span>
-          </div>
-          <div class="notifications">
-            <button class="btn btn-link">
-              <i class="fa fa-bell"></i>
-            </button>
-          </div>
+        <button class="btn-logout" (click)="logout()" *ngIf="!sidebarCollapsed || isMobile">
+          <i class="fa fa-sign-out"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" *ngIf="isMobile && mobileMenuOpen" (click)="closeMobileMenu()"></div>
+
+  <main class="main-wrapper" [class.full-width]="sidebarCollapsed && !isMobile">
+    <header class="desktop-top-bar" *ngIf="!isMobile">
+      <div class="left-section">
+        <button class="btn-collapse" (click)="toggleSidebar()">
+          <i class="fa" [ngClass]="sidebarCollapsed ? 'fa-indent' : 'fa-dedent'"></i>
+        </button>
+        <h1 class="page-title">{{ pageTitle }}</h1>
+      </div>
+
+      <div class="right-section">
+        <div class="business-pill">
+          <span class="dot"></span>
+          {{ currentBusiness?.name }}
         </div>
-      </header>
-    }
-    
-<div class="content-wrapper">
-  gfdsgfds
-  <router-outlet></router-outlet>
-</div>
+        <button class="btn-icon-light"><i class="fa fa-bell"></i></button>
+      </div>
+    </header>
+
+    <div class="content-container">
+      <router-outlet></router-outlet>
+    </div>
   </main>
 </div>
-

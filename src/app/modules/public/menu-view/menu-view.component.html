@@ -58,8 +58,8 @@
         <div class="categories-scroll">
           <button 
             class="category-filter-btn" 
-            [class.active]="activeCategoryId === 'all'"
-            (click)="filterByCategory('all')">
+            [class.active]="activeCategoryId === -1"
+            (click)="filterByCategory(-1)">
             <i class="fa fa-th-large"></i>
             <span>Todos</span>
           </button>
@@ -68,10 +68,10 @@
             <button 
               class="category-filter-btn" 
               [class.active]="activeCategoryId === category.id"
-              (click)="filterByCategory(category.id)">
+              (click)="filterByCategory(number(category.id))">
               <span>{{ category.name }}</span>
-              @if (getProductsByCategory(category.id).length > 0) {
-                <span class="category-count">{{ getProductsByCategory(category.id).length }}</span>
+              @if (getProductsByCategory(number(category.id)).length > 0) {
+                <span class="category-count">{{ getProductsByCategory(number(category.id)).length }}</span>
               }
             </button>
           }
@@ -111,8 +111,8 @@
         <div class="products-container">
           <!-- Group by category -->
           @for (category of categories; track category.id) {
-            @let categoryProducts = getProductsByCategory(category.id);
-            @if (categoryProducts.length > 0 && (activeCategoryId === 'all' || activeCategoryId === category.id)) {
+            @let categoryProducts = getProductsByCategory(number(category.id));
+            @if (categoryProducts.length > 0 && (activeCategoryId === -1 || activeCategoryId === category.id)) {
               <section class="category-section">
                 <h2 class="category-title">
                   {{ category.name }}

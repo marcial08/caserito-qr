@@ -1,20 +1,7 @@
-export interface Category {
-  id: string;
-  business_id: string;
-  name: string;
-  description?: string;
-  display_order: number;
-  cover_image_url?: string;
-  is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
-  product_count?: number;
-}
-
 export interface Product {
-  id: string;
+  id: number;  
   business_id: string;
-  category_id: string;
+  category_id: number; 
   name: string;
   description?: string;
   base_price: number;
@@ -33,38 +20,36 @@ export interface Product {
 }
 
 export interface ProductImage {
-  id: string;
-  product_id: string;
+  id: number;  
+  entity_id?: number | undefined
+  product_id: number; 
   url: string;
   alt_text?: string;
   sort_order: number;
   is_primary: boolean;
+   file?: File; 
 }
 
 export interface ProductVariant {
-  id: string;
-  product_id: string;
+  id: number;  
+  product_id: number; 
   name: string;
   price_modifier: number;
   is_default: boolean;
   sort_order: number;
 }
 
-export interface ProductFormData {
+export interface Category {
+  id?: number; 
+  business_id: string;
   name: string;
-  category_id: string;
   description?: string;
-  base_price: number;
-  compare_price?: number;
-  sku?: string;
-  is_available: boolean;
-  tags: string[];
-  images: File[];
-  variants: ProductVariantForm[];
-}
-
-export interface ProductVariantForm {
-  name: string;
-  price_modifier: number;
-  is_default: boolean;
+  display_order: number;
+  cover_image_url?: string; 
+  is_active: boolean;
+  created_at?: Date; 
+  updated_at?: Date;
+  product_count?: number;
+  gallery?: any[]; 
+  
 }

@@ -1,14 +1,27 @@
 export interface QRCode {
-  id: string;
-  business_id: string;
+  id:  number;
   name: string;
   slug: string;
   qr_color: string;
   logo_enabled: boolean;
   scan_count: number;
-  last_scanned?: Date;
-  created_at: Date;
+  last_scanned?: string | Date;
   url?: string;
+  created_at?: Date;
+  updated_at?: Date;
+  type?: 'general' | 'table'; 
+  table_number?: number; 
+  location?: string; 
+  business_id?: string;
+  qr_image_url?: string;
+}
+
+export interface PlanLimits {
+  max_qr_codes: number;
+  numeric?: {
+    max_qr_codes: number;
+  };
+  [key: string]: any;
 }
 
 export interface QRConfig {

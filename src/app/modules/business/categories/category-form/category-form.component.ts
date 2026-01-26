@@ -1,40 +1,39 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-
 import { ToastrService } from 'ngx-toastr';
-import { Subject, takeUntil, finalize } from 'rxjs';
-import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
-import { BusinessService } from '../../../../core/services/business.service';
-import { Category } from '../../../../core/models/menu.model';
+import { Subject, takeUntil, finalize, tap, of, Observable } from 'rxjs';
+
 import { CategoryService } from '../../../../core/services/category.service';
+import { UploadService } from '../../../../core/services/upload.service';
+import { ProductImage } from '../../../../core/models/menu.model';
 
 @Component({
   selector: 'app-category-form',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    // LoadingSpinnerComponent
-  ],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './category-form.component.html',
-  styleUrls: ['./category-form.component.scss']
+  styleUrls: ['./category-form.component.scss'],
 })
 export class CategoryFormComponent implements OnInit, OnDestroy {
   categoryForm: FormGroup;
   isEditMode = false;
   isLoading = false;
   isSubmitting = false;
-  categoryId: string | null = null;
-  currentCategory: Category | null = null;
-  
-  // Image upload
+  categoryId: number | null = null;
+
+  // Variables para la imagen (usadas en tu HTML)
   imagePreview: string | null = null;
   isUploadingImage = false;
-  selectedFile: File | null = null;
-  
+  selectedFiles: File[] = [];
+
+  private businessId = '8d3b46cb-afb7-49f8-bfea-2d64bef2d4eb';
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -42,208 +41,173 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private categoryService: CategoryService,
-    private toastr: ToastrService
+    private uploadService: UploadService,
+    private toastr: ToastrService,
   ) {
-    this.categoryForm = this.createForm();
-  }
-
-ngOnInit(): void {
-  console.log('🔵 CategoryFormComponent inicializado');
-  console.log('🔵 Ruta actual:', this.router.url);
-  
-  this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-    console.log('🔵 Params recibidos:', params);
-    console.log('🔵 ID de categoría:', params['id']);
-    
-    this.categoryId = params['id'];
-    this.isEditMode = !!this.categoryId;
-    
-    console.log('🔵 Modo edición:', this.isEditMode);
-    
-    if (this.isEditMode && this.categoryId) {
-      console.log('🔵 Cargando categoría con ID:', this.categoryId);
-      this.loadCategory(this.categoryId);
-    } else {
-      console.log('🔵 Modo creación de nueva categoría');
-      console.log('🔵 Valor del formulario:', this.categoryForm.value);
-    }
-  });
-  
-  // También verifica el formulario
-  console.log('🔵 Formulario creado:', this.categoryForm);
-  console.log('🔵 Controles del formulario:', this.categoryForm.controls);
-}
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  private createForm(): FormGroup {
-    return this.fb.group({
+    this.categoryForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(500)]],
       display_order: [0, [Validators.required, Validators.min(0)]],
       is_active: [true],
-      cover_image_url: ['']
     });
   }
 
-  private loadCategory(id: string): void {
+  ngOnInit(): void {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      if (params['id']) {
+        this.categoryId = +params['id'];
+        this.isEditMode = true;
+        this.loadCategory(this.categoryId);
+      }
+    });
+  }
+
+  private loadCategory(id: number): void {
     this.isLoading = true;
-    
-    this.categoryService.getCategoryById(id)
+    this.categoryService
+      .getCategoryById(id)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => this.isLoading = false)
+        finalize(() => (this.isLoading = false)),
       )
       .subscribe({
         next: (category: any) => {
-          this.currentCategory = category;
           this.categoryForm.patchValue(category);
-          this.imagePreview = category.cover_image_url || null;
+          // Si la categoría tiene cover_image_url, lo mostramos
+          if (category.cover_image_url) {
+            this.imagePreview = category.cover_image_url;
+          }
         },
-        error: (error: any) => {
-          console.error('Error loading category:', error);
-          this.toastr.error('Error al cargar la categoría', 'Error');
-          this.router.navigate(['/business/categories']);
-        }
       });
   }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (!file) return;
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif'];
-    if (!validTypes.includes(file.type)) {
-      this.toastr.error('Solo se permiten imágenes JPG, PNG, WebP o GIF', 'Error');
+    const file = input.files[0];
+
+    // Validación básica
+    if (!file.type.startsWith('image/')) {
+      this.toastr.error('El archivo debe ser una imagen');
       return;
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      this.toastr.error('La imagen no puede superar los 5MB', 'Error');
-      return;
-    }
+    this.selectedFiles = [file];
 
-    this.selectedFile = file;
-    this.isUploadingImage = true;
-
-    // Create preview
+    // Preview para el HTML
     const reader = new FileReader();
-    reader.onload = () => {
-      this.imagePreview = reader.result as string;
-      this.isUploadingImage = false;
-    };
+    reader.onload = () => (this.imagePreview = reader.result as string);
     reader.readAsDataURL(file);
+
+    // Si estamos en edición, podemos subirla inmediatamente (opcional)
+    // O esperar al onSubmit como lo tienes planteado.
   }
 
   removeImage(): void {
     this.imagePreview = null;
-    this.selectedFile = null;
-    this.categoryForm.patchValue({ cover_image_url: '' });
+    this.selectedFiles = [];
+    // Si quisieras borrarla del servidor inmediatamente, llamarías a un servicio aquí
   }
 
-  uploadImage(file: File): void {
+  private uploadImages(id: number): Observable<any> {
+    if (this.selectedFiles.length === 0) return of(null); // Retorna un observable vacío si no hay fotos
+
     this.isUploadingImage = true;
-    
-    // this.businessService.uploadCategoryImage(file)
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe({
-    //     next: (response: any) => {
-    //       this.isUploadingImage = false;
-    //       this.categoryForm.patchValue({ cover_image_url: response.url });
-    //       this.toastr.success('Imagen subida correctamente', 'Éxito');
-    //     },
-    //     error: (error: any) => {
-    //       this.isUploadingImage = false;
-    //       console.error('Error uploading image:', error);
-    //       this.toastr.error('Error al subir la imagen', 'Error');
-    //     }
-    //   });
-  }
-
-  get formTitle(): string {
-    return this.isEditMode ? 'Editar Categoría' : 'Nueva Categoría';
-  }
-
-  get submitButtonText(): string {
-    return this.isSubmitting 
-      ? (this.isEditMode ? 'Actualizando...' : 'Creando...') 
-      : (this.isEditMode ? 'Actualizar Categoría' : 'Crear Categoría');
+    return this.uploadService
+      .uploadProductImages('category', this.businessId, id, this.selectedFiles)
+      .pipe(
+        finalize(() => (this.isUploadingImage = false)),
+        tap({
+          next: () => {
+            this.toastr.success('Imagen guardada correctamente');
+            this.selectedFiles = [];
+          },
+          error: () => this.toastr.error('Error al subir la imagen'),
+        }),
+      );
   }
 
   onSubmit(): void {
     if (this.categoryForm.invalid) {
       this.markFormGroupTouched(this.categoryForm);
-      this.toastr.error('Por favor, completa los campos requeridos', 'Error');
       return;
     }
 
     this.isSubmitting = true;
-    const formData = this.categoryForm.value;
+    const formData = {
+      ...this.categoryForm.value,
+      business_id: this.businessId,
+    };
 
-    // Handle image upload if a new file is selected
-    if (this.selectedFile) {
-      this.uploadImage(this.selectedFile);
-    }
+    const request = this.isEditMode
+      ? this.categoryService.updateCategory(this.categoryId!, formData)
+      : this.categoryService.createCategory(formData);
 
-    if (this.isEditMode && this.categoryId) {
-      //Update category
-      this.categoryService.updateCategory(this.categoryId, formData)
-        .pipe(
-          takeUntil(this.destroy$),
-          finalize(() => this.isSubmitting = false)
-        )
-        .subscribe({
-          next: (response: any) => {
-            this.toastr.success('Categoría actualizada correctamente', 'Éxito');
+    request
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => (this.isSubmitting = false)),
+      )
+      .subscribe({
+        next: (res: any) => {
+          console.log('Respuesta del servidor:', res);
+          const id = this.isEditMode ? this.categoryId : res.id; // Asegúrate de que res.data.id sea la ruta correcta
+
+          const finishProcess = () => {
+            this.toastr.success(
+              `Categoría ${this.isEditMode ? 'actualizada' : 'creada'} con éxito`,
+            );
             this.router.navigate(['/business/categories']);
-          },
-          error: (error: any) => {
-            console.error('Error updating category:', error);
-            this.toastr.error('Error al actualizar la categoría', 'Error');
+          };
+
+          // Si hay archivos, esperamos a que la subida termine
+          if (this.selectedFiles.length > 0 && id) {
+            this.uploadImages(id).subscribe({
+              next: () => finishProcess(),
+              error: () => {
+                // Incluso si falla la imagen, quizás quieras navegar o quedarte
+                // Aquí decidimos navegar igual pero ya se mostró el error de imagen
+                finishProcess();
+              },
+            });
+          } else {
+            // Si no hay archivos, navegamos de inmediato
+            finishProcess();
           }
-        });
-    } else {
-      // Create category
-      this.categoryService.createCategory(formData)
-        .pipe(
-          takeUntil(this.destroy$),
-          finalize(() => this.isSubmitting = false)
-        )
-        .subscribe({
-          next: (response: any) => {
-            this.toastr.success('Categoría creada correctamente', 'Éxito');
-            this.router.navigate(['/business/categories']);
-          },
-          error: (error: any) => {
-            console.error('Error creating category:', error);
-            this.toastr.error('Error al crear la categoría', 'Error');
-          }
-        });
-    }
+        },
+        error: (err) => {
+          this.toastr.error('Hubo un error al procesar la solicitud');
+        },
+      });
+  }
+
+  // Helpers para el HTML
+  get formTitle(): string {
+    return this.isEditMode ? 'Editar Categoría' : 'Nueva Categoría';
   }
 
   onCancel(): void {
     this.router.navigate(['/business/categories']);
   }
 
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.values(formGroup.controls).forEach(control => {
-      control.markAsTouched();
+  hasError(controlName: string, errorName: string): boolean {
+    const control = this.categoryForm.get(controlName);
+    return !!(
+      control?.hasError(errorName) &&
+      (control.dirty || control.touched)
+    );
+  }
 
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.values(formGroup.controls).forEach((control) => {
+      control.markAsTouched();
+      if (control instanceof FormGroup) this.markFormGroupTouched(control);
     });
   }
 
-  hasError(controlName: string, errorName: string): boolean {
-    const control = this.categoryForm.get(controlName);
-    return control ? control.hasError(errorName) && (control.dirty || control.touched) : false;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

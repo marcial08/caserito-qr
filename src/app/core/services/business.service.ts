@@ -15,7 +15,7 @@ export class BusinessService {
   // Mock data
   private mockCategories: Category[] = [
     {
-      id: 'cat-1',
+      id: 1,
       business_id: 'business-123',
       name: 'Entradas',
       description: 'Aperitivos y entradas',
@@ -26,7 +26,7 @@ export class BusinessService {
       product_count: 5
     },
     {
-      id: 'cat-2',
+      id: 2,
       business_id: 'business-123',
       name: 'Platos Principales',
       description: 'Platos fuertes y especialidades',
@@ -40,9 +40,9 @@ export class BusinessService {
 
   private mockProducts: Product[] = [
     {
-      id: 'prod-1',
+      id: 2,
       business_id: 'business-123',
-      category_id: 'cat-2',
+      category_id: 2,
       name: 'Hamburguesa Clásica',
       description: 'Carne 100% vacuno, lechuga, tomate, queso cheddar',
       base_price: 12.99,
@@ -55,8 +55,8 @@ export class BusinessService {
       currency: 'EUR',
       images: [
         {
-          id: 'img-1',
-          product_id: 'prod-1',
+          id: 2,
+          product_id: 1,
           url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd',
           alt_text: 'Hamburguesa clásica',
           sort_order: 1,
@@ -68,7 +68,7 @@ export class BusinessService {
 
   private mockQRCodes: QRCode[] = [
     {
-      id: 'qr-1',
+      id: 1,
       business_id: 'business-123',
       name: 'Mesa 1',
       slug: 'mesa-1',
@@ -127,21 +127,8 @@ export class BusinessService {
     );
   }
 
-  // getCategories(): Observable<Category[]> {
-  //   return of(this.mockCategories).pipe(delay(700));
-  // }
 
-  createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Observable<Category> {
-    const newCategory: Category = {
-      ...category,
-      id: 'cat-' + Date.now(),
-      created_at: new Date(),
-      updated_at: new Date()
-    };
-    this.mockCategories.push(newCategory);
-    return of(newCategory).pipe(delay(600));
-  }
-
+  
   getProducts(): Observable<Product[]> {
     return of(this.mockProducts).pipe(delay(800));
   }
@@ -149,7 +136,7 @@ export class BusinessService {
   createProduct(productData: any): Observable<Product> {
     const newProduct: Product = {
       ...productData,
-      id: 'prod-' + Date.now(),
+      id: 1 + Date.now(),
       created_at: new Date(),
       updated_at: new Date()
     };
@@ -163,7 +150,7 @@ export class BusinessService {
 
   generateQR(config: { name: string; qr_color?: string }): Observable<QRCode> {
     const newQR: QRCode = {
-      id: 'qr-' + Date.now(),
+      id: 2,
       business_id: 'business-123',
       name: config.name,
       slug: config.name.toLowerCase().replace(/\s+/g, '-'),
@@ -258,7 +245,7 @@ export class BusinessService {
   // Temporal: datos mock
   const mockCategories: Category[] = [
     {
-      id: '1',
+      id: 1,
       name: 'Entradas',
       description: 'Platos para comenzar tu comida',
       display_order: 1,
@@ -270,7 +257,7 @@ export class BusinessService {
       business_id: 'business-123'
     },
     {
-      id: '2',
+      id: 2,
       name: 'Platos Principales',
       description: 'Nuestros platos más destacados',
       display_order: 2,

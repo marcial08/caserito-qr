@@ -1,0 +1,281 @@
+<div class="qr-form-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <button class="btn-back" (click)="goBack()">
+          <i class="fa fa-arrow-left me-2"></i>
+          Volver
+        </button>
+        <h1 class="page-title">
+          {{ isEditMode ? 'Editar Código QR' : 'Nuevo Código QR' }}
+        </h1>
+        <p class="page-subtitle">
+          {{ isEditMode ? 'Modifica la configuración de tu código QR' : 'Crea un nuevo código QR para tu menú digital' }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+  <div class="loading-container">
+    <app-loading-spinner [message]="isEditMode ? 'Cargando QR...' : 'Preparando formulario...'"></app-loading-spinner>
+  </div>
+  }
+
+  @if (!isLoading) {
+  <div class="form-container">
+    <form [formGroup]="qrForm" (ngSubmit)="onSubmit()" class="qr-form">
+      <div class="form-grid">
+        <!-- Left Column - Form Fields -->
+        <div class="form-column">
+          <!-- Tipo de QR -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fa fa-qrcode me-2"></i>
+              Tipo de QR
+            </h3>
+            <p class="section-description">
+              Selecciona el tipo de código QR que deseas crear
+            </p>
+            
+            <div class="type-options">
+              @for (type of qrTypes; track type.value) {
+              <label class="type-option" [class.active]="qrForm.get('type')?.value === type.value">
+                <input type="radio" formControlName="type" [value]="type.value" hidden />
+                <div class="type-icon">
+                  <i class="fa" [class]="type.icon"></i>
+                </div>
+                <div class="type-content">
+                  <div class="type-name">{{ type.name }}</div>
+                  <div class="type-description">{{ type.description }}</div>
+                </div>
+                <div class="type-check">
+                  <i class="fa fa-check"></i>
+                </div>
+              </label>
+              }
+            </div>
+          </div>
+
+          <!-- Información Básica -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fa fa-info-circle me-2"></i>
+              Información Básica
+            </h3>
+            
+            <div class="form-group">
+              <label class="form-label" for="name">
+                Nombre del QR *
+                <span class="label-hint">(Visible solo para ti)</span>
+              </label>
+              <input type="text" id="name" formControlName="name" class="form-control" 
+                     placeholder="Ej: Mesa 1, Barra Principal, QR General..." />
+              @if (name?.invalid && (name?.dirty || name?.touched)) {
+              <div class="error-message">
+                @if (name?.errors?.['required']) {
+                El nombre es requerido
+                }
+                @if (name?.errors?.['minlength']) {
+                Mínimo 3 caracteres
+                }
+                @if (name?.errors?.['maxlength']) {
+                Máximo 50 caracteres
+                }
+              </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="slug">
+                Slug / URL única *
+                <span class="label-hint">(Usado en la URL del menú)</span>
+              </label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">menugr.pro/m/</span>
+                <input type="text" id="slug" formControlName="slug" class="form-control" 
+                       placeholder="ej: mesa-1, barra, mi-restaurante" (blur)="validateSlug()" />
+              </div>
+              @if (slug?.invalid && (slug?.dirty || slug?.touched)) {
+              <div class="error-message">
+                @if (slug?.errors?.['required']) {
+                El slug es requerido
+                }
+                @if (slug?.errors?.['pattern']) {
+                Solo letras minúsculas, números y guiones
+                }
+              </div>
+              }
+              <div class="form-hint">
+                URL completa: <a [href]="previewUrl" target="_blank" class="preview-link">{{ previewUrl }}</a>
+              </div>
+            </div>
+
+            @if (isTableType) {
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="table_number">
+                  Número de Mesa *
+                </label>
+                <input type="number" id="table_number" formControlName="table_number" class="form-control" 
+                       min="1" max="999" placeholder="Ej: 1, 2, 3..." />
+                @if (tableNumber?.invalid && (tableNumber?.dirty || tableNumber?.touched)) {
+                <div class="error-message">
+                  El número de mesa es requerido
+                </div>
+                }
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="location">
+                  Ubicación / Zona
+                  <span class="label-hint">(Opcional)</span>
+                </label>
+                <input type="text" id="location" formControlName="location" class="form-control" 
+                       placeholder="Ej: Terraza, Interior, Barra..." />
+              </div>
+            </div>
+            } @else {
+            <div class="form-group">
+              <label class="form-label" for="location">
+                Ubicación / Descripción
+                <span class="label-hint">(Opcional)</span>
+              </label>
+              <input type="text" id="location" formControlName="location" class="form-control" 
+                     placeholder="Ej: Entrada principal, Recepción, Mostrador..." />
+            </div>
+            }
+          </div>
+
+          <!-- URL de Redirección -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fa fa-link me-2"></i>
+              URL de Redirección Personalizada
+            </h3>
+            <p class="section-description">
+              Si deseas que el QR redirija a una URL específica en lugar del menú principal
+            </p>
+            
+            <div class="form-group">
+              <label class="form-label" for="redirect_url">
+                URL Personalizada
+                <span class="label-hint">(Opcional)</span>
+              </label>
+              <input type="url" id="redirect_url" formControlName="redirect_url" class="form-control" 
+                     placeholder="https://ejemplo.com/menu-especial" />
+              <div class="form-hint">
+                Deja vacío para usar el menú principal de tu negocio
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Preview & Colors -->
+        <div class="preview-column">
+          <!-- Preview -->
+          <div class="preview-section">
+            <h3 class="section-title">
+              <i class="fa fa-eye me-2"></i>
+              Vista Previa
+            </h3>
+            
+            <div class="qr-preview-card">
+              <div class="qr-preview-header">
+                <h4 class="preview-title">{{ qrForm.get('name')?.value || 'Nombre del QR' }}</h4>
+                <span class="preview-badge" [class]="isTableType ? 'badge-table' : 'badge-general'">
+                  {{ isTableType ? 'Mesa ' + (qrForm.get('table_number')?.value || 'X') : 'General' }}
+                </span>
+              </div>
+              
+              <div class="qr-preview-image">
+                <div class="qr-code-placeholder" [style.backgroundColor]="qrForm.get('qr_color')?.value + '20'">
+                  <div class="qr-code-icon">
+                    <i class="fa fa-qrcode" [style.color]="qrForm.get('qr_color')?.value"></i>
+                  </div>
+                  @if (qrForm.get('logo_enabled')?.value) {
+                  <div class="qr-logo-preview">
+                    <i class="fa fa-store"></i>
+                  </div>
+                  }
+                  @if (isTableType && qrForm.get('table_number')?.value) {
+                  <div class="qr-table-number">
+                    {{ qrForm.get('table_number')?.value }}
+                  </div>
+                  }
+                </div>
+              </div>
+              
+              <div class="qr-preview-info">
+                <div class="preview-url">
+                  <i class="fa fa-link me-2"></i>
+                  <span class="url-text">{{ previewUrl }}</span>
+                </div>
+                @if (qrForm.get('location')?.value) {
+                <div class="preview-location">
+                  <i class="fa fa-map-marker-alt me-2"></i>
+                  {{ qrForm.get('location')?.value }}
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Personalización -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fa fa-palette me-2"></i>
+              Personalización
+            </h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Color del QR *
+              </label>
+              <div class="color-options">
+                @for (color of colorOptions; track color.value) {
+                <label class="color-option" [class.active]="qrForm.get('qr_color')?.value === color.value">
+                  <input type="radio" formControlName="qr_color" [value]="color.value" hidden />
+                  <div class="color-swatch" [style.backgroundColor]="color.value" [class]="color.class"></div>
+                  <div class="color-name">{{ color.name }}</div>
+                </label>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="logo_enabled" />
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">
+                  <i class="fa fa-store me-2"></i>
+                  Incluir logo en el QR
+                </span>
+              </label>
+              <div class="form-hint">
+                Tu logo aparecerá en el centro del código QR
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="isSubmitting">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="qrForm.invalid || isSubmitting">
+              @if (isSubmitting) {
+              <i class="fa fa-spinner fa-spin me-2"></i>
+              Guardando...
+              } @else {
+              {{ isEditMode ? 'Actualizar QR' : 'Crear QR' }}
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  }
+</div>

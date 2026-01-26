@@ -20,7 +20,7 @@ import { CategoryService } from '../../../../core/services/category.service';
     EmptyStateComponent,
   ],
   templateUrl: './categories.component.html',
-  styleUrls: ['./categories.component.scss']
+  styleUrls: ['./categories.component.scss'],
 })
 export class CategoriesComponent implements OnInit {
   categories: Category[] = [];
@@ -51,7 +51,7 @@ export class CategoriesComponent implements OnInit {
     this.isLoading = true;
 
     this.categoryService.getCategories().subscribe((categories) => {
-      this.categories = categories.filter(cat => cat.is_active);
+      this.categories = categories;
       this.filteredCategories = [...this.categories];
       this.updatePagination();
       this.isLoading = false;
@@ -67,9 +67,10 @@ export class CategoriesComponent implements OnInit {
       this.filteredCategories = [...this.categories];
     } else {
       const searchLower = this.searchTerm.toLowerCase();
-      this.filteredCategories = this.categories.filter(category =>
-        category.name.toLowerCase().includes(searchLower) ||
-        category.description?.toLowerCase().includes(searchLower)
+      this.filteredCategories = this.categories.filter(
+        (category) =>
+          category.name.toLowerCase().includes(searchLower) ||
+          category.description?.toLowerCase().includes(searchLower),
       );
     }
 
@@ -78,22 +79,83 @@ export class CategoriesComponent implements OnInit {
   }
 
   deleteCategory(category: Category): void {
-    if (confirm(`¿Estás seguro de eliminar "${category.name}"? Los productos de esta categoría se moverán a "Sin categoría".`)) {
-      // In a real app, call businessService.deleteCategory(category.id)
-      this.toastr.success(`Categoría "${category.name}" eliminada`, 'Éxito');
-      this.categories = this.categories.filter(c => c.id !== category.id);
-      this.filterCategories();
+    if (category.product_count && category.product_count > 0) {
+      if (
+        !confirm(
+          `"${category.name}" tiene ${category.product_count} producto(s). ¿Deseas moverlos a "Sin categoría" antes de eliminar?`,
+        )
+      ) {
+        return;
+      }
+    } else {
+      if (!confirm(`¿Estás seguro de eliminar "${category.name}"?`)) {
+        return;
+      }
     }
+
+    this.isLoading = true;
+    this.categoryService.deleteCategory(Number(category.id)).subscribe({
+      next: (response) => {
+        this.toastr.success(
+          `Categoría "${category.name}" eliminada`,
+          'Éxito',
+        );
+        // Actualizar lista localmente
+        this.categories = this.categories.filter((c) => c.id !== category.id);
+        this.filterCategories();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error al eliminar categoría:', error);
+        let errorMessage = 'No se pudo eliminar la categoría';
+
+        if (error.message.includes('productos activos')) {
+          errorMessage =
+            'No se puede eliminar una categoría con productos activos';
+        } else if (error.message.includes('no encontrada')) {
+          errorMessage = 'La categoría no existe';
+        }
+
+        this.toastr.error(errorMessage, 'Error');
+        this.isLoading = false;
+      },
+    });
   }
 
   toggleCategoryStatus(category: Category): void {
     const newStatus = !category.is_active;
-    // In a real app, call businessService.updateCategory(category.id, { is_active: newStatus })
-    category.is_active = newStatus;
-    this.toastr.success(
-      `Categoría ${newStatus ? 'activada' : 'desactivada'}`,
-      'Éxito'
-    );
+    const action = newStatus ? 'activar' : 'desactivar';
+
+    if (
+      !confirm(`¿Estás seguro de ${action} la categoría "${category.name}"?`)
+    ) {
+      return;
+    }
+
+    this.categoryService
+      .updateCategory(Number(category.id), { is_active: newStatus })
+      .subscribe({
+        next: (updatedCategory) => {
+          // Actualizar la categoría en la lista local
+          const index = this.categories.findIndex((c) => c.id === category.id);
+          if (index !== -1) {
+            this.categories[index] = updatedCategory;
+          }
+
+          this.toastr.success(
+            `Categoría ${newStatus ? 'activada' : 'desactivada'}`,
+            'Éxito',
+          );
+          this.filterCategories();
+        },
+        error: (error) => {
+          console.error('Error al cambiar estado:', error);
+          this.toastr.error(
+            'No se pudo cambiar el estado de la categoría',
+            'Error',
+          );
+        },
+      });
   }
 
   // Pagination methods

@@ -7,6 +7,8 @@ import { Product, Category } from '../../../../core/models/menu.model';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { ToastrService } from 'ngx-toastr';
+import { ProductService } from '../../../../core/services/product.service';
+import { CategoryService } from '../../../../core/services/category.service';
 
 @Component({
   selector: 'app-products',
@@ -27,9 +29,10 @@ export class ProductsComponent implements OnInit {
   categories: Category[] = [];
   planLimits: any = null;
   isLoading = false;
+  deleting = false;
 
   // Filters
-  selectedCategory: string = '';
+  selectedCategory: number = -1;
   selectedAvailability: string = '';
   searchTerm: string = '';
 
@@ -40,6 +43,8 @@ export class ProductsComponent implements OnInit {
 
   constructor(
     private businessService: BusinessService,
+    private productService: ProductService,
+    private categoryService: CategoryService,
     private toastr: ToastrService,
     public router: Router,
   ) {}
@@ -51,19 +56,105 @@ export class ProductsComponent implements OnInit {
   loadData(): void {
     this.isLoading = true;
 
-    this.businessService.getProducts().subscribe((products) => {
-      this.products = products;
-      this.filteredProducts = [...products];
-      this.updatePagination();
-      this.isLoading = false;
+    // Usar business_id real si tienes
+    const businessId = 'business-123'; // Reemplaza con el business_id real
+    
+   // this.productService.getProducts({ business_id: businessId }).subscribe({
+    this.productService.getProducts().subscribe({
+      next: (products) => {
+        this.products = products;
+        this.filteredProducts = [...products];
+        this.updatePagination();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar productos:', error);
+        this.toastr.error('No se pudieron cargar los productos', 'Error');
+        this.isLoading = false;
+      }
     });
 
-    this.businessService.getCategories().subscribe((categories) => {
-      this.categories = categories;
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error al cargar categorías:', error);
+      }
     });
 
     this.businessService.getPlanLimits().subscribe((limits) => {
       this.planLimits = limits;
+    });
+  }
+
+  deleteProduct(product: Product): void {
+    if (!confirm(`¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    this.deleting = true;
+    this.productService.deleteProduct(product.id).subscribe({
+      next: (response) => {
+        this.toastr.success(response.message || `Producto "${product.name}" eliminado`, 'Éxito');
+        
+        // Actualizar lista localmente
+        this.products = this.products.filter(p => p.id !== product.id);
+        this.filteredProducts = this.filteredProducts.filter(p => p.id !== product.id);
+        this.updatePagination();
+        
+        this.deleting = false;
+      },
+      error: (error) => {
+        console.error('Error al eliminar producto:', error);
+        
+        let errorMessage = 'No se pudo eliminar el producto';
+        
+        if (error.message.includes('no encontrado')) {
+          errorMessage = 'El producto no existe';
+        } else if (error.message.includes('en uso') || error.message.includes('relacionado')) {
+          errorMessage = 'El producto está en uso y no se puede eliminar';
+        } else if (error.message.includes('No se pudo conectar')) {
+          errorMessage = 'Error de conexión con el servidor';
+        }
+        
+        this.toastr.error(errorMessage, 'Error');
+        this.deleting = false;
+      }
+    });
+  }
+
+  toggleProductStatus(product: Product): void {
+    const newStatus = !product.is_available;
+    const action = newStatus ? 'disponible' : 'no disponible';
+    
+    if (!confirm(`¿Estás seguro de marcar el producto como ${action}?`)) {
+      return;
+    }
+
+    this.productService.updateProduct(product.id, { is_available: newStatus }).subscribe({
+      next: (updatedProduct) => {
+        // Actualizar el producto en ambas listas
+        const updateInArray = (array: Product[]) => {
+          const index = array.findIndex(p => p.id === product.id);
+          if (index !== -1) {
+            array[index] = updatedProduct;
+          }
+        };
+        
+        updateInArray(this.products);
+        updateInArray(this.filteredProducts);
+        
+        this.toastr.success(
+          `Producto marcado como ${newStatus ? 'disponible' : 'no disponible'}`,
+          'Éxito'
+        );
+        this.filterProducts(); // Re-filtrar para mantener los filtros aplicados
+      },
+      error: (error) => {
+        console.error('Error al cambiar estado:', error);
+        this.toastr.error('No se pudo cambiar el estado del producto', 'Error');
+      }
     });
   }
 
@@ -87,7 +178,7 @@ export class ProductsComponent implements OnInit {
         const searchLower = this.searchTerm.toLowerCase();
         return product.name.toLowerCase().includes(searchLower) ||
                product.description?.toLowerCase().includes(searchLower) ||
-               product.tags.some(tag => tag.toLowerCase().includes(searchLower));
+               (product.tags && product.tags.some(tag => tag.toLowerCase().includes(searchLower)));
       }
 
       return true;
@@ -97,22 +188,9 @@ export class ProductsComponent implements OnInit {
     this.updatePagination();
   }
 
-  getCategoryName(categoryId: string): string {
+  getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category?.name || 'Sin categoría';
-  }
-
-  deleteProduct(product: Product): void {
-    if (
-      confirm(
-        `¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`,
-      )
-    ) {
-      // In a real app, call businessService.deleteProduct(product.id)
-      this.toastr.success(`Producto "${product.name}" eliminado`, 'Éxito');
-      this.products = this.products.filter(p => p.id !== product.id);
-      this.filterProducts();
-    }
   }
 
   // Pagination methods
@@ -155,5 +233,36 @@ export class ProductsComponent implements OnInit {
 
   goToPage(page: number): void {
     this.currentPage = page;
+  }
+
+  // Manejar eventos de filtros
+  onSearchChange(): void {
+    this.filterProducts();
+  }
+
+  onCategoryChange(): void {
+    this.filterProducts();
+  }
+
+  onAvailabilityChange(): void {
+    this.filterProducts();
+  }
+
+  clearFilters(): void {
+    this.selectedCategory = -1;
+    this.selectedAvailability = '';
+    this.searchTerm = '';
+    this.filterProducts();
+  }
+
+  // Helper para mostrar badges de estado
+  getStatusBadgeClass(product: Product): string {
+    return product.is_available 
+      ? 'bg-green-100 text-green-800' 
+      : 'bg-red-100 text-red-800';
+  }
+
+  getStatusText(product: Product): string {
+    return product.is_available ? 'Disponible' : 'No disponible';
   }
 }

@@ -2,44 +2,45 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Category } from '../models/menu.model';
+import { Product, ProductImage, ProductVariant } from '../models/menu.model';
 
-export interface CategoryFilters {
+export interface ProductFilters {
   business_id?: string;
-  is_active?: boolean;
+  category_id?: string;
+  is_available?: boolean;
   search?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class CategoryService {
-  private apiUrl = 'http://localhost:3000/api/categories';
+export class ProductService {
+  private apiUrl = 'http://localhost:3000/api/products';
 
   constructor(private http: HttpClient) {}
 
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json'
-      // Aquí puedes agregar headers de autenticación si los necesitas
-      // 'Authorization': `Bearer ${this.authService.getToken()}`
     });
   }
 
-  // Obtener todas las categorías con filtros opcionales
-  getCategories(filters?: CategoryFilters): Observable<Category[]> {
-    return this.http.post<{ success: boolean; data: Category[] }>(
+  // Obtener todos los productos con filtros
+  getProducts(filters?: ProductFilters): Observable<Product[]> {
+    return this.http.post<{ success: boolean; data: Product[] }>(
       `${this.apiUrl}/list`,
       filters || {},
       { headers: this.getHeaders() }
     ).pipe(
       map(response => {
         if (response.success) {
-          // Convertir strings de fecha a objetos Date
-          return response.data.map(category => ({
-            ...category,
-            // created_at: new Date(category.created_at),
-            // updated_at: new Date(category.updated_at)
+          return response.data.map(product => ({
+            ...product,
+            created_at: new Date(product.created_at),
+            updated_at: new Date(product.updated_at),
+            tags: product.tags || [],
+            images: product.images || [],
+            variants: product.variants || []
           }));
         }
         throw new Error('Error en la respuesta del servidor');
@@ -48,20 +49,23 @@ export class CategoryService {
     );
   }
 
-  // Obtener una categoría por ID
-  getCategoryById(id: number): Observable<Category> {
-    return this.http.post<{ success: boolean; data: Category }>(
+  // Obtener un producto por ID
+  getProductById(id: number): Observable<Product> {
+    return this.http.post<{ success: boolean; data: Product }>(
       `${this.apiUrl}/get`,
       { id },
       { headers: this.getHeaders() }
     ).pipe(
       map(response => {
         if (response.success) {
-          // Convertir strings de fecha a objetos Date
+          const product = response.data;
           return {
-            ...response.data,
-            // created_at: new Date(response.data.created_at),
-            // updated_at: new Date(response.data.updated_at)
+            ...product,
+            created_at: new Date(product.created_at),
+            updated_at: new Date(product.updated_at),
+            tags: product.tags || [],
+            images: product.images || [],
+            variants: product.variants || []
           };
         }
         throw new Error('Error en la respuesta del servidor');
@@ -70,28 +74,21 @@ export class CategoryService {
     );
   }
 
-  // Crear una nueva categoría
-  createCategory(categoryData: Omit<Category, 'id' | 'created_at' | 'updated_at' | 'product_count'>): Observable<Category> {
-    return this.http.post<{ success: boolean; data: Category }>(
+  // Crear un nuevo producto
+  createProduct(productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Observable<Product> {
+    return this.http.post<{ success: boolean; data: Product }>(
       `${this.apiUrl}/create`,
-      categoryData,
+      productData,
       { headers: this.getHeaders() }
     ).pipe(
       map(response => {
         if (response.success) {
-           const created_at = response.data.created_at 
-      ? new Date(response.data.created_at)
-      : new Date();
-    
-    const updated_at = response.data.updated_at 
-      ? new Date(response.data.updated_at)
-      : new Date();
-    
-    return {
-      ...response.data,
-      created_at,
-      updated_at
-    };
+          const product = response.data;
+          return {
+            ...product,
+            created_at: new Date(product.created_at),
+            updated_at: new Date(product.updated_at)
+          };
         }
         throw new Error('Error en la respuesta del servidor');
       }),
@@ -99,22 +96,23 @@ export class CategoryService {
     );
   }
 
-  // Actualizar una categoría existente
-  updateCategory(id: number, categoryData: Partial<Category>): Observable<Category> {
+  // Actualizar un producto existente
+  updateProduct(id: number, productData: Partial<Product>): Observable<Product> {
     // Remover campos que no se deben actualizar
-    const { id: _, created_at, updated_at, product_count, ...updateData } = categoryData;
+    const { id: _, created_at, updated_at, images, variants, category, ...updateData } = productData;
     
-    return this.http.post<{ success: boolean; data: Category }>(
+    return this.http.post<{ success: boolean; data: Product }>(
       `${this.apiUrl}/update`,
       { id, ...updateData },
       { headers: this.getHeaders() }
     ).pipe(
       map(response => {
         if (response.success) {
+          const product = response.data;
           return {
-            ...response.data,
-            // created_at: new Date(response.data.created_at),
-            // updated_at: new Date(response.data.updated_at)
+            ...product,
+            created_at: new Date(product.created_at),
+            updated_at: new Date(product.updated_at)
           };
         }
         throw new Error('Error en la respuesta del servidor');
@@ -123,8 +121,8 @@ export class CategoryService {
     );
   }
 
-  // Eliminar una categoría
-  deleteCategory(id: number): Observable<{ message: string }> {
+  // Eliminar un producto
+  deleteProduct(id: number): Observable<{ message: string }> {
     return this.http.post<{ success: boolean; data: { message: string } }>(
       `${this.apiUrl}/delete`,
       { id },
@@ -142,15 +140,13 @@ export class CategoryService {
 
   // Manejo centralizado de errores
   private handleError(error: any): Observable<never> {
-    console.error('Error en CategoryService:', error);
+    console.error('Error en ProductService:', error);
     
     let errorMessage = 'Error desconocido';
     
     if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      // Error del lado del servidor
       if (error.status === 0) {
         errorMessage = 'No se pudo conectar con el servidor';
       } else if (error.error && error.error.error) {
