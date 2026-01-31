@@ -37,7 +37,7 @@ export class BusinessLayoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-    this.currentBusiness = this.authService.getCurrentBusiness();
+   // this.currentBusiness = this.authService.getCurrentBusiness();
     this.updatePageTitle();
 
     // Actualizar título automáticamente al navegar

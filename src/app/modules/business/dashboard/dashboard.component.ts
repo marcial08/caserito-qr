@@ -7,6 +7,7 @@ import { QRCode } from '../../../core/models/qr.model';
 import { Category, Product } from '../../../core/models/menu.model';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { ProductService } from '../../../core/services/product.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,7 +37,8 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private businessService: BusinessService,
-    private planService: PlanService
+    private planService: PlanService,
+    private productService: ProductService
   ) {}
 
   ngOnInit(): void {
@@ -46,7 +48,7 @@ export class DashboardComponent implements OnInit {
   loadData(): void {
     this.isLoading = true;
     
-    this.businessService.getProducts().subscribe(products => {
+    this.productService.getProducts().subscribe(products => {
       this.products = products;
     });
     

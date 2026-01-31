@@ -1,17 +1,13 @@
+// models/user.model.ts
 export interface User {
   id: string;
-  business_id: string;
-  email: string;
   name: string;
-  role: 'owner' | 'manager' | 'staff';
-  permissions: {
-    menu: boolean;
-    analytics: boolean;
-    billing: boolean;
-    settings: boolean;
-  };
-  last_login?: Date;
-  created_at: Date;
+  email: string;
+  phone?: string;
+  is_active: boolean;
+  email_verified?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface LoginCredentials {
@@ -19,8 +15,26 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface RegisterData extends LoginCredentials {
+export interface RegisterData {
   name: string;
-  business_name: string;
-  business_type: 'restaurant' | 'cafe' | 'bar' | 'food_truck';
+  email: string;
+  phone?: string;
+  password: string;
+  businessName: string;
+  businessType: string;
+  acceptedTerms: boolean;
+}
+
+// models/business.model.ts
+export interface Business {
+  id: string;
+  name: string;
+  slug: string;
+  business_type: string;
+  primary_color: string;
+  secondary_color: string;
+  owner_id: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }

@@ -63,6 +63,22 @@
         color: #7f8c8d;
         margin: 0.25rem 0 0;
       }
+      
+      .qr-location-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(42, 157, 143, 0.1);
+        color: #2A9D8F;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-top: 4px;
+        
+        i {
+          font-size: 10px;
+        }
+      }
     }
     
     .header-right {
@@ -1076,12 +1092,34 @@
   }
 }
 
-// Current Year for footer
-:host {
-  --current-year: '2024';
+// Responsive adjustments
+@media (max-width: 639px) {
+  .products-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
-.menu-footer .footer-powered .footer-copyright::after {
-  content: var(--current-year);
+@media (max-width: 380px) {
+  .menu-header {
+    .header-container {
+      padding: 0.75rem;
+    }
+    
+    .business-name {
+      font-size: 1.1rem !important;
+    }
+  }
+  
+  .search-container {
+    flex-direction: column;
+    gap: 0.75rem !important;
+    
+    .search-input-wrapper {
+      width: 100%;
+    }
+    
+    .btn-filter-toggle {
+      align-self: flex-start;
+    }
+  }
 }
-

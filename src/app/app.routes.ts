@@ -26,16 +26,19 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'menu/:businessSlug',
+    path: 'menu/:slug',
     loadComponent: () =>
       import('./modules/public/menu-view/menu-view.component').then(
         (m) => m.MenuViewComponent,
       ),
   },
-  //   {
-  //     path: 'm/:qrSlug',
-  //     loadComponent: () => import('./modules/public/menu-view/public-menu.component').then(m => m.PublicMenuComponent)
-  //   },
+  {
+    path: 'm/:slug',  // Ruta para códigos QR (usa el mismo componente)
+    loadComponent: () =>
+      import('./modules/public/menu-view/menu-view.component').then(
+        (m) => m.MenuViewComponent,
+      ),
+  },
   //   {
   //     path: 'demo',
   //     loadComponent: () => import('./modules/public/menu-view/public-menu.component').then(m => m.PublicMenuComponent)

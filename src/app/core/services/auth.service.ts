@@ -1,9 +1,80 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { delay, map, tap } from 'rxjs/operators';
-import { User, LoginCredentials, RegisterData } from '../models/user.model';
-import { Business } from '../models/business.model';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { tap, catchError, map } from 'rxjs/operators';
+
+// Interfaces que deben coincidir con tu backend
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  is_active: boolean;
+  email_verified?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface Business {
+  id: string;
+  name: string;
+  slug: string;
+  business_type: string;
+  primary_color: string;
+  secondary_color: string;
+  owner_id: string;
+  is_active: boolean;
+
+
+   email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  timezone?: string;
+  currency?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface RegisterData {
+  name: string;
+  email: string;
+  phone?: string;
+  password: string;
+  businessName: string;
+  businessType: string;
+  acceptedTerms: boolean;
+}
+
+interface RegisterResponse {
+  user: User;
+  business: Business;
+  token: string;
+  accepted_terms: boolean;
+  created_at: string;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface BackendLoginResponse {
+  success: boolean;
+  data: {
+    user: User;
+    business: Business;
+    token: string;
+  };
+}
+
+interface LoginResponse {
+  user: User;
+  business: Business;
+  token: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -15,83 +86,138 @@ export class AuthService {
   currentUser$ = this.currentUserSubject.asObservable();
   currentBusiness$ = this.currentBusinessSubject.asObservable();
   
-  private apiUrl = 'api'; // Mock API base URL
-
+  // ¡¡¡IMPORTANTE!!! Cambia esto a la URL de tu backend
+  private apiUrl = 'http://localhost:3000/api'; // Backend real
+  
   constructor(private http: HttpClient) {
-    // Cargar usuario desde localStorage en inicialización
-    const savedUser = localStorage.getItem('currentUser');
-    const savedBusiness = localStorage.getItem('currentBusiness');
-    
-    if (savedUser) {
-      this.currentUserSubject.next(JSON.parse(savedUser));
+    this.loadFromStorage();
+  }
+
+  private loadFromStorage(): void {
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      const savedBusiness = localStorage.getItem('currentBusiness');
+      
+      if (savedUser) {
+        this.currentUserSubject.next(JSON.parse(savedUser));
+      }
+      if (savedBusiness) {
+        this.currentBusinessSubject.next(JSON.parse(savedBusiness));
+      }
+    } catch (error) {
+      console.error('Error loading from storage:', error);
+      this.clearStorage();
     }
-    if (savedBusiness) {
-      this.currentBusinessSubject.next(JSON.parse(savedBusiness));
-    }
   }
 
-  login(credentials: LoginCredentials): Observable<{ user: User; business: Business; token: string }> {
-    // Mock response
-    const mockResponse = {
-      user: {
-        id: 'user-123',
-        business_id: 'business-123',
-        email: credentials.email,
-        name: 'Juan Pérez',
-        role: 'owner' as const,
-        permissions: {
-          menu: true,
-          analytics: true,
-          billing: true,
-          settings: true
-        },
-        created_at: new Date()
-      },
-      business: {
-        id: 'business-123',
-        name: 'Mi Restaurante',
-        slug: 'mi-restaurante',
-        business_type: 'restaurant' as const,
-        email: 'info@mirestaurante.com',
-        phone: '+1234567890',
-        address: 'Calle Principal 123',
-        city: 'Ciudad',
-        country: 'ES',
-        timezone: 'Europe/Madrid',
-        currency: 'EUR',
-        is_active: true,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      token: 'mock-jwt-token-123456'
-    };
+ register(data: RegisterData): Observable<any> {
+  const registerData = {
+    name: data.name,
+    email: data.email,
+    phone: data.phone || '',
+    password: data.password,
+    businessName: data.businessName,
+    businessType: data.businessType,
+    acceptedTerms: data.acceptedTerms
+  };
 
-    return of(mockResponse).pipe(
-      delay(1000), // Simular delay de red
-      tap(response => {
-        localStorage.setItem('currentUser', JSON.stringify(response.user));
-        localStorage.setItem('currentBusiness', JSON.stringify(response.business));
-        localStorage.setItem('token', response.token);
-        this.currentUserSubject.next(response.user);
-        this.currentBusinessSubject.next(response.business);
-      })
-    );
-  }
+  console.log('📤 Enviando registro a:', `${this.apiUrl}/auth/register`);
+  console.log('📦 Datos a enviar:', registerData);
 
-  register(data: RegisterData): Observable<{ success: boolean; message: string }> {
-    return of({ success: true, message: 'Registro exitoso' }).pipe(delay(1500));
-  }
+  return this.http.post<any>(
+    `${this.apiUrl}/auth/register`, 
+    registerData
+  ).pipe(
+    tap(fullResponse => {
+      console.log('🔍 RESPUESTA CRUDA DEL BACKEND:', fullResponse);
+      
+      // EXTRAER DATOS DE LA ESTRUCTURA {success: true, data: {...}}
+      if (fullResponse && fullResponse.success && fullResponse.data) {
+        const user = fullResponse.data.user;
+        const business = fullResponse.data.business;
+        const token = fullResponse.data.token;
+        
+        console.log('🔍 Datos extraídos:');
+        console.log('  - User:', user);
+        console.log('  - Business:', business);
+        console.log('  - Token:', token);
+        
+        // Validar que los datos existen
+        if (user && business && token) {
+          console.log('✅ Datos válidos, guardando...');
+          this.saveAuthData(user, business, token);
+        } else {
+          console.error('❌ Faltan datos en la respuesta:', {user, business, token});
+        }
+      } else {
+        console.error('❌ Estructura de respuesta inválida:', fullResponse);
+      }
+    }),
+    map(fullResponse => {
+      // Para que el componente reciba la respuesta
+      return fullResponse;
+    }),
+    catchError(error => {
+      console.error('❌ Error HTTP en registro:', error);
+      return throwError(() => error);
+    })
+  );
+}
+ login(credentials: LoginCredentials): Observable<LoginResponse> {
+  console.log('📤 Enviando login a:', `${this.apiUrl}/auth/login`);
+  
+  return this.http.post<BackendLoginResponse>(
+    `${this.apiUrl}/auth/login`, 
+    credentials
+  ).pipe(
+    map(response => {
+      if (!response.success || !response.data) {
+        throw new Error('Respuesta del servidor inválida');
+      }
+      return response.data;
+    }),
+    tap(loginData => {
+      console.log('✅ Login exitoso:', loginData);
+      this.saveAuthData(loginData.user, loginData.business, loginData.token);
+    }),
+    catchError(error => {
+      console.error('❌ Error en login:', error);
+      return throwError(() => error);
+    })
+  );
+}
+// En tu auth.service.ts, método saveAuthData:
+private saveAuthData(user: User, business: Business, token: string): void {
+  // Asegurar que el negocio tenga todas las propiedades requeridas
+  const businessWithDefaults: Business = {
+    ...business,
+    email: business.email || '',
+    country: business.country || 'ES',
+    timezone: business.timezone || 'Europe/Madrid',
+    currency: business.currency || 'EUR'
+  };
+  
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  localStorage.setItem('currentBusiness', JSON.stringify(businessWithDefaults));
+  localStorage.setItem('token', token);
+  this.currentUserSubject.next(user);
+  this.currentBusinessSubject.next(businessWithDefaults);
+}
 
   logout(): void {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('currentBusiness');
-    localStorage.removeItem('token');
+    this.clearStorage();
     this.currentUserSubject.next(null);
     this.currentBusinessSubject.next(null);
   }
 
+  private clearStorage(): void {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('currentBusiness');
+    localStorage.removeItem('token');
+  }
+
   isAuthenticated(): boolean {
-    return !!this.currentUserSubject.value;
+    return !!this.currentUserSubject.value && !!localStorage.getItem('token');
   }
 
   getCurrentUser(): User | null {
@@ -102,18 +228,31 @@ export class AuthService {
     return this.currentBusinessSubject.value;
   }
 
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
   updateProfile(userData: Partial<User>): Observable<User> {
     const currentUser = this.currentUserSubject.value;
     if (!currentUser) {
-      throw new Error('No user logged in');
+      return throwError(() => new Error('No hay usuario autenticado'));
     }
     
-    const updatedUser = { ...currentUser, ...userData };
-    return of(updatedUser).pipe(
-      delay(800),
-      tap(user => {
-        this.currentUserSubject.next(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
+    const token = this.getToken();
+    
+    return this.http.put<User>(
+      `${this.apiUrl}/users/${currentUser.id}`, 
+      userData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    ).pipe(
+      tap(updatedUser => {
+        this.currentUserSubject.next(updatedUser);
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
       })
     );
   }

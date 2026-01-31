@@ -3,6 +3,14 @@ import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { QRCode, PlanLimits } from '../models/qr.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
+export interface ScanResponse {
+  success: boolean;
+  data: {
+    qrInfo: QRCode;
+    menuData?: any;
+  };
+  message?: string;
+}
 
 export interface QrFilters {
   business_id?: string;
@@ -228,4 +236,20 @@ export class QrService {
       
       return throwError(() => new Error(errorMessage));
     }
+
+    /**
+   * Registra un escaneo de QR
+   */
+  registerScan(qrSlug: string, sessionData?: any): Observable<ScanResponse> {
+    const data = {
+      qr_slug: qrSlug,
+      // session_id: this.generateSessionId(),
+      // device_type: this.getDeviceType(),
+      user_agent: navigator.userAgent,
+      accessed_at: new Date().toISOString(),
+      ...sessionData
+    };
+
+    return this.http.post<ScanResponse>(`${this.apiUrl}/qr-codes/scan`, data);
+  }
 }

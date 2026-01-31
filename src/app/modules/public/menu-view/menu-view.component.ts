@@ -7,6 +7,7 @@ import { BusinessService } from '../../../core/services/business.service';
 import { Category, Product } from '../../../core/models/menu.model';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { ToastrService } from 'ngx-toastr';
+import { QrService } from '../../../core/services/qr.service';
 
 interface CartItem {
   product: Product;
@@ -33,16 +34,13 @@ interface Cart {
   styleUrls: ['./menu-view.component.scss']
 })
 export class MenuViewComponent implements OnInit, OnDestroy {
-number(arg0: number|undefined): number {
-throw new Error('Method not implemented.');
-}
   categories: Category[] = [];
   products: Product[] = [];
   filteredProducts: Product[] = [];
   isLoading = false;
   businessInfo: any = null;
-
-   currentYear = new Date().getFullYear();
+  
+  currentYear = new Date().getFullYear();
   
   // Active category
   activeCategoryId: number = -1;
@@ -66,19 +64,25 @@ throw new Error('Method not implemented.');
   isMobile = false;
   isTablet = false;
   
+  // QR Tracking
+  isQRCodeAccess = false;
+  qrCodeInfo: any = null;
+  
   private destroy$ = new Subject<void>();
-  private slug: string = '';
+  slug: string = '';
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private route: ActivatedRoute,
     private router: Router,
     private businessService: BusinessService,
+    private qrService: QrService,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
     this.checkViewport();
+    this.detectAccessType();
     this.loadBusinessData();
     this.loadCartFromStorage();
   }
@@ -100,53 +104,195 @@ throw new Error('Method not implemented.');
     }
   }
 
+  private detectAccessType(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const currentUrl = window.location.pathname;
+      this.isQRCodeAccess = currentUrl.startsWith('/m/');
+    }
+  }
+
   private loadBusinessData(): void {
     this.isLoading = true;
 
-    // Get business slug from URL or use default
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.slug = params['slug'] || 'demo';
-      this.loadMenuData();
-    });
+      this.slug = params['slug'];
+      
+      if (!this.slug) {
+        this.toastr.error('URL no válida', 'Error');
+        this.router.navigate(['/']);
+        return;
+      }
 
-    // Load business info
-    this.businessService.getBusiness().subscribe({
-      next: (business) => {
-        this.businessInfo = business;
-      },
-      error: (error) => {
-        console.error('Error loading business:', error);
-        // Continue with default data
+      // Si es acceso por QR
+      if (this.isQRCodeAccess) {
+        this.handleQRAccess();
+      } else {
+        // Si es acceso directo por slug
+        this.handleDirectAccess();
       }
     });
   }
 
-  private loadMenuData(): void {
-    this.businessService.getCategories().subscribe({
-      next: (categories) => {
-        this.categories = categories
-          .filter(cat => cat.is_active)
-          .sort((a, b) => a.display_order - b.display_order);
+  private handleQRAccess(): void {
+    // 1. Registrar el escaneo
+    this.qrService.registerScan(this.slug).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data?.qrInfo) {
+          this.qrCodeInfo = response.data.qrInfo;
+          
+          // Mostrar información de ubicación
+          if (this.qrCodeInfo?.table_number || this.qrCodeInfo?.location) {
+            const mesa = this.qrCodeInfo.table_number ? `Mesa ${this.qrCodeInfo.table_number}` : '';
+            const ubicacion = this.qrCodeInfo.location ? ` • ${this.qrCodeInfo.location}` : '';
+            if (mesa || ubicacion) {
+              this.toastr.info(`${mesa}${ubicacion}`, 'Ubicación detectada', {
+                timeOut: 3000
+              });
+            }
+          }
+          
+          // Si el QR tiene business_id, cargar ese negocio
+          if (this.qrCodeInfo.business_id) {
+            this.loadBusinessBySlug();
+          } else if (response.data.menuData) {
+            // Si viene con datos del menú
+            this.loadMenuDataFromResponse(response.data.menuData);
+          }
+        }
+      },
+      error: (error: any) => {
+        console.error('Error al registrar escaneo:', error);
+        // Intentar cargar como slug normal
+        this.loadBusinessBySlug();
+      }
+    });
+  }
+
+  private handleDirectAccess(): void {
+    this.loadBusinessBySlug();
+  }
+
+  private loadBusinessBySlug(): void {
+    // IMPORTANTE: Usar método público para obtener negocio por slug
+    // Debes crear este método en business.service.ts
+    // this.businessService.getPublicBusinessBySlug(this.slug).subscribe({
+    //   next: (business) => {
+    //     this.businessInfo = business;
+    //     this.loadMenuForBusiness();
+    //   },
+    //   error: (error) => {
+    //     console.error('Error loading business by slug:', error);
         
-        // this.businessService.getProducts().subscribe({
-        //   next: (products) => {
-        //     this.products = products.filter(p => p.is_available);
-        //     this.filteredProducts = [...this.products];
-        //     this.isLoading = false;
-        //   },
-        //   error: (error:any) => {
-        //     console.error('Error loading products:', error);
-        //     this.toastr.error('Error al cargar el menú');
-        //     this.isLoading = false;
-        //   }
-        // });
+    //     // Fallback: si el usuario está logueado y es dueño, usar métodos privados
+    //     this.loadBusinessInfoFallback();
+    //   }
+    // });
+  }
+
+  private loadBusinessInfoFallback(): void {
+    // Esto es solo para el dueño del negocio
+    this.businessService.getBusiness().subscribe({
+      next: (business) => {
+        // Verificar si el negocio del usuario coincide con el slug
+        if (business.slug === this.slug) {
+          this.businessInfo = business;
+          this.loadMenuForBusiness();
+        } else {
+          this.toastr.error('Negocio no encontrado', 'Error');
+          this.isLoading = false;
+        }
       },
       error: (error) => {
-        console.error('Error loading categories:', error);
-        this.toastr.error('Error al cargar el menú');
+        console.error('Error loading business info:', error);
+        this.toastr.error('Negocio no encontrado', 'Error');
         this.isLoading = false;
       }
     });
+  }
+
+  private loadMenuForBusiness(): void {
+    // Cargar menú para el negocio específico
+    // Método 1: Usar endpoint público del menú
+    // this.businessService.getPublicMenuBySlug(this.slug).subscribe({
+    //   next: (menuData) => {
+    //     this.processMenuData(menuData);
+    //   },
+    //   error: (error) => {
+    //     console.error('Error loading public menu:', error);
+        
+    //     // Método 2: Usar endpoints privados (solo para dueño)
+    //     this.loadPrivateMenu();
+    //   }
+    // });
+  }
+
+  private loadMenuDataFromResponse(menuData: any): void {
+    // Cargar datos del menú desde la respuesta del QR
+    if (menuData.business) {
+      this.businessInfo = menuData.business;
+    }
+    
+    if (menuData.categories) {
+      this.categories = menuData.categories
+        .filter((cat: any) => cat.is_active && cat.id !== undefined)
+        .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+    }
+    
+    if (menuData.products) {
+      this.products = menuData.products.filter((p: any) => p.is_available);
+      this.filteredProducts = [...this.products];
+      this.isLoading = false;
+    }
+  }
+
+  private loadPrivateMenu(): void {
+    // Esto solo funciona si el usuario es dueño del negocio
+    this.businessService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories
+          .filter(cat => cat.is_active && cat.id !== undefined)
+          .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        
+        this.businessService.getProducts().subscribe({
+          next: (products) => {
+            this.products = products.filter(p => p.is_available);
+            this.filteredProducts = [...this.products];
+            this.isLoading = false;
+          },
+          error: (error) => {
+            console.error('Error loading products:', error);
+            this.toastr.error('Error al cargar los productos');
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+        this.toastr.error('Error al cargar las categorías');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private processMenuData(menuData: any): void {
+    if (menuData.categories) {
+      this.categories = menuData.categories
+        .filter((cat: any) => cat.is_active && cat.id !== undefined)
+        .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+    }
+    
+    if (menuData.products) {
+      this.products = menuData.products.filter((p: any) => p.is_available);
+      this.filteredProducts = [...this.products];
+    }
+    
+    this.isLoading = false;
+  }
+
+  // Método auxiliar para convertir string a number de forma segura
+  number(value: any): number {
+    const num = Number(value);
+    return isNaN(num) ? -1 : num;
   }
 
   // Filtering
@@ -318,7 +464,7 @@ throw new Error('Method not implemented.');
     }
 
     this.toastr.success('Redirigiendo al checkout...', '¡Perfecto!');
-    // In a real app, you would navigate to checkout page
+    // TODO: Implementar navegación al checkout
     // this.router.navigate(['/checkout']);
   }
 
@@ -335,10 +481,6 @@ throw new Error('Method not implemented.');
       if (savedCart) {
         try {
           this.cart = JSON.parse(savedCart);
-          // Ensure cart items have proper Product objects
-          this.cart.items.forEach(item => {
-            // In a real app, you might want to fetch fresh product data
-          });
         } catch (error) {
           console.error('Error loading cart from storage:', error);
         }
@@ -389,5 +531,15 @@ throw new Error('Method not implemented.');
         this.toastr.success('URL copiada al portapapeles', '¡Compartido!');
       });
     }
+  }
+
+  // Método para mostrar información del QR
+  getLocationInfo(): string {
+    if (this.isQRCodeAccess && this.qrCodeInfo) {
+      const mesa = this.qrCodeInfo.table_number ? `Mesa ${this.qrCodeInfo.table_number}` : '';
+      const ubicacion = this.qrCodeInfo.location ? ` (${this.qrCodeInfo.location})` : '';
+      return `${mesa}${ubicacion}`;
+    }
+    return '';
   }
 }

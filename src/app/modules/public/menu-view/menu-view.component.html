@@ -9,9 +9,16 @@
         <div class="business-info">
           <h1 class="business-name">{{ businessInfo?.name || 'Mi Restaurante' }}</h1>
           <p class="business-slogan">Menú Digital</p>
+          <!-- Mostrar ubicación si es acceso por QR -->
+          @if (getLocationInfo()) {
+          <div class="qr-location-badge">
+            <i class="fa fa-map-marker-alt me-1"></i>
+            {{ getLocationInfo() }}
+          </div>
+          }
         </div>
       </div>
-      
+
       <div class="header-right">
         <button class="btn-icon btn-share" (click)="shareMenu()" title="Compartir menú">
           <i class="fa fa-share-alt"></i>
@@ -19,7 +26,7 @@
         <button class="btn-cart" (click)="toggleCart()">
           <i class="fa fa-shopping-cart"></i>
           @if (getCartItemCount() > 0) {
-            <span class="cart-badge">{{ getCartItemCount() }}</span>
+          <span class="cart-badge">{{ getCartItemCount() }}</span>
           }
         </button>
       </div>
@@ -31,21 +38,15 @@
     <div class="search-container">
       <div class="search-input-wrapper">
         <i class="fa fa-search search-icon"></i>
-        <input
-          type="text"
-          class="search-input"
-          [(ngModel)]="searchTerm"
-          (input)="onSearch()"
-          placeholder="Buscar productos..."
-          [attr.aria-label]="'Buscar productos'"
-        />
+        <input type="text" class="search-input" [(ngModel)]="searchTerm" (input)="onSearch()"
+          placeholder="Buscar productos..." [attr.aria-label]="'Buscar productos'" />
         @if (searchTerm) {
-          <button class="btn-clear-search" (click)="clearSearch()" aria-label="Limpiar búsqueda">
-            <i class="fa fa-times"></i>
-          </button>
+        <button class="btn-clear-search" (click)="clearSearch()" aria-label="Limpiar búsqueda">
+          <i class="fa fa-times"></i>
+        </button>
         }
       </div>
-      
+
       <button class="btn-filter-toggle" (click)="toggleCategoryFilter()" [class.active]="showCategoryFilter">
         <i class="fa fa-filter"></i>
         <span class="filter-text">Filtrar</span>
@@ -54,133 +55,129 @@
 
     <!-- Category Filter (Mobile) -->
     @if (showCategoryFilter || !isMobile) {
-      <div class="category-filter" [class.show]="showCategoryFilter || !isMobile">
-        <div class="categories-scroll">
-          <button 
-            class="category-filter-btn" 
-            [class.active]="activeCategoryId === -1"
-            (click)="filterByCategory(-1)">
-            <i class="fa fa-th-large"></i>
-            <span>Todos</span>
-          </button>
-          
-          @for (category of categories; track category.id) {
-            <button 
-              class="category-filter-btn" 
-              [class.active]="activeCategoryId === category.id"
-              (click)="filterByCategory(number(category.id))">
-              <span>{{ category.name }}</span>
-              @if (getProductsByCategory(number(category.id)).length > 0) {
-                <span class="category-count">{{ getProductsByCategory(number(category.id)).length }}</span>
-              }
-            </button>
+    <div class="category-filter" [class.show]="showCategoryFilter || !isMobile">
+      <div class="categories-scroll">
+        <button class="category-filter-btn" [class.active]="activeCategoryId === -1" (click)="filterByCategory(-1)">
+          <i class="fa fa-th-large"></i>
+          <span>Todos</span>
+        </button>
+
+        @for (category of categories; track category.id) {
+        <button class="category-filter-btn" [class.active]="activeCategoryId === category.id"
+          (click)="filterByCategory(category.id?? -1)">
+          <span>{{ category.name }}</span>
+          @if (getProductsByCategory(category.id?? -1).length > 0) {
+          <span class="category-count">{{ getProductsByCategory(category.id?? -1).length }}</span>
           }
-        </div>
+        </button>
+        }
       </div>
+    </div>
     }
   </div>
 
   <!-- Loading State -->
   @if (isLoading) {
-    <div class="loading-container">
-      <app-loading-spinner message="Cargando menú..."></app-loading-spinner>
-    </div>
+  <div class="loading-container">
+    <app-loading-spinner message="Cargando menú..."></app-loading-spinner>
+  </div>
   }
 
   <!-- Main Content -->
   @if (!isLoading) {
-    <main class="menu-content">
-      <!-- Empty State -->
-      @if (filteredProducts.length === 0) {
-        <div class="empty-state">
-          <div class="empty-icon">
-            <i class="fa fa-utensils"></i>
-          </div>
-          <h3>No se encontraron productos</h3>
-          <p>Intenta con otros términos de búsqueda o selecciona otra categoría</p>
-          @if (searchTerm) {
-            <button class="btn btn-outline" (click)="clearSearch()">
-              Limpiar búsqueda
-            </button>
-          }
-        </div>
+  <main class="menu-content">
+    <!-- Empty State -->
+    @if (filteredProducts.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fa fa-utensils"></i>
+      </div>
+      <h3>No se encontraron productos</h3>
+      <p>Intenta con otros términos de búsqueda o selecciona otra categoría</p>
+      @if (searchTerm) {
+      <button class="btn btn-outline" (click)="clearSearch()">
+        Limpiar búsqueda
+      </button>
       }
+    </div>
+    }
 
-      <!-- Products Grid -->
-      @if (filteredProducts.length > 0) {
-        <div class="products-container">
-          <!-- Group by category -->
-          @for (category of categories; track category.id) {
-            @let categoryProducts = getProductsByCategory(number(category.id));
-            @if (categoryProducts.length > 0 && (activeCategoryId === -1 || activeCategoryId === category.id)) {
-              <section class="category-section">
-                <h2 class="category-title">
-                  {{ category.name }}
-                  @if (category.description) {
-                    <span class="category-description">{{ category.description }}</span>
-                  }
-                </h2>
-                
-                <div class="products-grid">
-                  @for (product of categoryProducts; track product.id) {
-                    <div class="product-card" (click)="openProductModal(product)">
-                      <div class="product-image">
-                        <img 
-                          [src]="getProductImageUrl(product)" 
-                          [alt]="product.name"
-                          loading="lazy"
-                        />
-                        @if (getDiscountPercentage(product) > 0) {
-                          <span class="discount-badge">
-                            -{{ getDiscountPercentage(product) }}%
-                          </span>
-                        }
-                      </div>
-                      
-                      <div class="product-info">
-                        <h3 class="product-name">{{ product.name }}</h3>
-                        
-                        @if (product.description) {
-                          <p class="product-description">
-                            {{ product.description | slice:0:60 }}{{ product.description.length > 60 ? '...' : '' }}
-                          </p>
-                        }
-                        
-                        <div class="product-footer">
-                          <div class="product-price">
-                            <span class="current-price">
-                              {{ product.base_price | currency:product.currency }}
-                            </span>
-                            @if (product.compare_price && product.compare_price > product.base_price) {
-                              <span class="original-price">
-                                {{ product.compare_price | currency:product.currency }}
-                              </span>
-                            }
-                          </div>
-                          
-                          <button class="btn-add-to-cart" (click)="openProductModal(product); $event.stopPropagation()">
-                            <i class="fa fa-plus"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+    <!-- ... resto del template ... -->
+
+    <!-- Products Grid -->
+    @if (filteredProducts.length > 0) {
+    <div class="products-container">
+      <!-- Group by category -->
+      @for (category of categories; track category.id || $index) {
+      @let categoryId = category.id ?? -1;
+      @let categoryProducts = getProductsByCategory(categoryId);
+      @if (categoryProducts.length > 0 && (activeCategoryId === -1 || activeCategoryId === categoryId)) {
+      <section class="category-section">
+        <h2 class="category-title">
+          {{ category.name }}
+          @if (category.description) {
+          <span class="category-description">{{ category.description }}</span>
+          }
+        </h2>
+
+        <div class="products-grid">
+          @for (product of categoryProducts; track product.id) {
+          <div class="product-card" (click)="openProductModal(product)">
+            <div class="product-image">
+              <img [src]="getProductImageUrl(product)" [alt]="product.name" loading="lazy" />
+              @if (getDiscountPercentage(product) > 0) {
+              <span class="discount-badge">
+                -{{ getDiscountPercentage(product) }}%
+              </span>
+              }
+            </div>
+
+            <div class="product-info">
+              <h3 class="product-name">{{ product.name }}</h3>
+
+              @if (product.description) {
+              <p class="product-description">
+                {{ product.description | slice:0:60 }}{{ product.description.length > 60 ? '...' : '' }}
+              </p>
+              }
+
+              <div class="product-footer">
+                <div class="product-price">
+                  <span class="current-price">
+                    {{ product.base_price | currency:product.currency }}
+                  </span>
+                  @if (product.compare_price && product.compare_price > product.base_price) {
+                  <span class="original-price">
+                    {{ product.compare_price | currency:product.currency }}
+                  </span>
                   }
                 </div>
-              </section>
-            }
+
+                <button class="btn-add-to-cart" (click)="openProductModal(product); $event.stopPropagation()">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
           }
         </div>
+      </section>
       }
-    </main>
+      }
+    </div>
+    }
+
+    <!-- ... resto del template ... -->
+  </main>
   }
 
   <!-- Floating Cart Button (Mobile) -->
   @if (isMobile && getCartItemCount() > 0 && !showCart) {
-    <button class="floating-cart-btn" (click)="toggleCart()">
-      <i class="fa fa-shopping-cart"></i>
-      <span class="cart-count">{{ getCartItemCount() }}</span>
-      <span class="cart-total">{{ cart.total | currency:'EUR' }}</span>
-    </button>
+  <button class="floating-cart-btn" (click)="toggleCart()">
+    <i class="fa fa-shopping-cart"></i>
+    <span class="cart-count">{{ getCartItemCount() }}</span>
+    <span class="cart-total">{{ cart.total | currency:'EUR' }}</span>
+  </button>
   }
 
   <!-- Cart Sidebar -->
@@ -194,84 +191,78 @@
         <i class="fa fa-times"></i>
       </button>
     </div>
-    
+
     <div class="cart-body">
       @if (cart.items.length === 0) {
-        <div class="empty-cart">
-          <i class="fa fa-shopping-cart fa-3x text-muted mb-3"></i>
-          <h4>Carrito vacío</h4>
-          <p class="text-muted">Agrega productos desde el menú</p>
-        </div>
+      <div class="empty-cart">
+        <i class="fa fa-shopping-cart fa-3x text-muted mb-3"></i>
+        <h4>Carrito vacío</h4>
+        <p class="text-muted">Agrega productos desde el menú</p>
+      </div>
       } @else {
-        <div class="cart-items">
-          @for (item of cart.items; track $index; let i = $index) {
-            <div class="cart-item">
-              <div class="item-info">
-                <h4 class="item-name">{{ item.product.name }}</h4>
-                @if (item.notes) {
-                  <p class="item-notes">{{ item.notes }}</p>
-                }
-                <div class="item-price">
-                  {{ getCartItemTotal(item) | currency:item.product.currency }}
-                </div>
-              </div>
-              
-              <div class="item-controls">
-                <div class="quantity-controls">
-                  <button 
-                    class="btn-quantity btn-decrease"
-                    (click)="updateCartItemQuantity(i, -1)">
-                    <i class="fa fa-minus"></i>
-                  </button>
-                  <span class="quantity">{{ item.quantity }}</span>
-                  <button 
-                    class="btn-quantity btn-increase"
-                    (click)="updateCartItemQuantity(i, 1)">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </div>
-                
-                <button 
-                  class="btn-remove-item"
-                  (click)="removeFromCart(i)">
-                  <i class="fa fa-trash"></i>
-                </button>
-              </div>
+      <div class="cart-items">
+        @for (item of cart.items; track $index; let i = $index) {
+        <div class="cart-item">
+          <div class="item-info">
+            <h4 class="item-name">{{ item.product.name }}</h4>
+            @if (item.notes) {
+            <p class="item-notes">{{ item.notes }}</p>
+            }
+            <div class="item-price">
+              {{ getCartItemTotal(item) | currency:item.product.currency }}
             </div>
-          }
+          </div>
+
+          <div class="item-controls">
+            <div class="quantity-controls">
+              <button class="btn-quantity btn-decrease" (click)="updateCartItemQuantity(i, -1)">
+                <i class="fa fa-minus"></i>
+              </button>
+              <span class="quantity">{{ item.quantity }}</span>
+              <button class="btn-quantity btn-increase" (click)="updateCartItemQuantity(i, 1)">
+                <i class="fa fa-plus"></i>
+              </button>
+            </div>
+
+            <button class="btn-remove-item" (click)="removeFromCart(i)">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
         </div>
-        
-        <div class="cart-summary">
-          <div class="summary-row">
-            <span>Subtotal</span>
-            <span>{{ cart.total | currency:'EUR' }}</span>
-          </div>
-          <div class="summary-row">
-            <span>Envío</span>
-            <span class="text-success">Gratis</span>
-          </div>
-          <div class="summary-row total">
-            <span>Total</span>
-            <span class="total-price">{{ cart.total | currency:'EUR' }}</span>
-          </div>
+        }
+      </div>
+
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ cart.total | currency:'EUR' }}</span>
         </div>
+        <div class="summary-row">
+          <span>Envío</span>
+          <span class="text-success">Gratis</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span class="total-price">{{ cart.total | currency:'EUR' }}</span>
+        </div>
+      </div>
       }
     </div>
-    
+
     <div class="cart-footer">
       @if (cart.items.length > 0) {
-        <div class="cart-actions">
-          <button class="btn btn-outline btn-clear" (click)="clearCart()">
-            <i class="fa fa-trash me-2"></i>
-            Vaciar
-          </button>
-          <button class="btn btn-primary btn-checkout" (click)="proceedToCheckout()">
-            Continuar
-            <i class="fa fa-arrow-right ms-2"></i>
-          </button>
-        </div>
+      <div class="cart-actions">
+        <button class="btn btn-outline btn-clear" (click)="clearCart()">
+          <i class="fa fa-trash me-2"></i>
+          Vaciar
+        </button>
+        <button class="btn btn-primary btn-checkout" (click)="proceedToCheckout()">
+          Continuar
+          <i class="fa fa-arrow-right ms-2"></i>
+        </button>
+      </div>
       }
-      
+
       <div class="cart-info">
         <p class="info-text">
           <i class="fa fa-info-circle me-2"></i>
@@ -283,105 +274,94 @@
 
   <!-- Product Modal -->
   @if (showProductModal && selectedProduct) {
-    <div class="product-modal-overlay" (click)="closeProductModal()">
-      <div class="product-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <button class="btn-close-modal" (click)="closeProductModal()">
-            <i class="fa fa-times"></i>
-          </button>
+  <div class="product-modal-overlay" (click)="closeProductModal()">
+    <div class="product-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <button class="btn-close-modal" (click)="closeProductModal()">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="product-modal-image">
+          <img [src]="getProductImageUrl(selectedProduct)" [alt]="selectedProduct.name" />
+          @if (getDiscountPercentage(selectedProduct) > 0) {
+          <span class="modal-discount-badge">
+            -{{ getDiscountPercentage(selectedProduct) }}%
+          </span>
+          }
         </div>
-        
-        <div class="modal-body">
-          <div class="product-modal-image">
-            <img 
-              [src]="getProductImageUrl(selectedProduct)" 
-              [alt]="selectedProduct.name"
-            />
-            @if (getDiscountPercentage(selectedProduct) > 0) {
-              <span class="modal-discount-badge">
-                -{{ getDiscountPercentage(selectedProduct) }}%
-              </span>
+
+        <div class="product-modal-info">
+          <h2 class="modal-product-name">{{ selectedProduct.name }}</h2>
+
+          <div class="modal-product-price">
+            <span class="current-price">
+              {{ selectedProduct.base_price | currency:selectedProduct.currency }}
+            </span>
+            @if (selectedProduct.compare_price && selectedProduct.compare_price > selectedProduct.base_price) {
+            <span class="original-price">
+              {{ selectedProduct.compare_price | currency:selectedProduct.currency }}
+            </span>
             }
           </div>
-          
-          <div class="product-modal-info">
-            <h2 class="modal-product-name">{{ selectedProduct.name }}</h2>
-            
-            <div class="modal-product-price">
-              <span class="current-price">
-                {{ selectedProduct.base_price | currency:selectedProduct.currency }}
-              </span>
-              @if (selectedProduct.compare_price && selectedProduct.compare_price > selectedProduct.base_price) {
-                <span class="original-price">
-                  {{ selectedProduct.compare_price | currency:selectedProduct.currency }}
-                </span>
+
+          @if (selectedProduct.description) {
+          <div class="modal-product-description">
+            <h4>Descripción</h4>
+            <p>{{ selectedProduct.description }}</p>
+          </div>
+          }
+
+          @if (selectedProduct.tags && selectedProduct.tags.length > 0) {
+          <div class="modal-product-tags">
+            <h4>Etiquetas</h4>
+            <div class="tags">
+              @for (tag of selectedProduct.tags; track tag) {
+              <span class="tag">{{ tag }}</span>
               }
             </div>
-            
-            @if (selectedProduct.description) {
-              <div class="modal-product-description">
-                <h4>Descripción</h4>
-                <p>{{ selectedProduct.description }}</p>
-              </div>
-            }
-            
-            @if (selectedProduct.tags && selectedProduct.tags.length > 0) {
-              <div class="modal-product-tags">
-                <h4>Etiquetas</h4>
-                <div class="tags">
-                  @for (tag of selectedProduct.tags; track tag) {
-                    <span class="tag">{{ tag }}</span>
-                  }
-                </div>
-              </div>
-            }
-            
-            <!-- Quantity Selector -->
-            <div class="modal-quantity">
-              <h4>Cantidad</h4>
-              <div class="quantity-selector">
-                <button 
-                  class="btn-quantity btn-decrease"
-                  (click)="decrementQuantity()"
-                  [disabled]="selectedQuantity <= 1">
-                  <i class="fa fa-minus"></i>
-                </button>
-                <span class="quantity">{{ selectedQuantity }}</span>
-                <button 
-                  class="btn-quantity btn-increase"
-                  (click)="incrementQuantity()">
-                  <i class="fa fa-plus"></i>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Notes -->
-            <div class="modal-notes">
-              <h4>Notas adicionales</h4>
-              <textarea
-                class="notes-input"
-                [(ngModel)]="productNotes"
-                placeholder="Ej: Sin cebolla, bien cocido, etc."
-                rows="3"
-              ></textarea>
+          </div>
+          }
+
+          <!-- Quantity Selector -->
+          <div class="modal-quantity">
+            <h4>Cantidad</h4>
+            <div class="quantity-selector">
+              <button class="btn-quantity btn-decrease" (click)="decrementQuantity()"
+                [disabled]="selectedQuantity <= 1">
+                <i class="fa fa-minus"></i>
+              </button>
+              <span class="quantity">{{ selectedQuantity }}</span>
+              <button class="btn-quantity btn-increase" (click)="incrementQuantity()">
+                <i class="fa fa-plus"></i>
+              </button>
             </div>
           </div>
-        </div>
-        
-        <div class="modal-footer">
-          <div class="modal-total">
-            <span>Total:</span>
-            <span class="total-price">
-              {{ (selectedProduct.base_price * selectedQuantity) | currency:selectedProduct.currency }}
-            </span>
+
+          <!-- Notes -->
+          <div class="modal-notes">
+            <h4>Notas adicionales</h4>
+            <textarea class="notes-input" [(ngModel)]="productNotes" placeholder="Ej: Sin cebolla, bien cocido, etc."
+              rows="3"></textarea>
           </div>
-          <button class="btn btn-primary btn-add-to-cart-modal" (click)="addToCart()">
-            <i class="fa fa-cart-plus me-2"></i>
-            Agregar al carrito
-          </button>
         </div>
       </div>
+
+      <div class="modal-footer">
+        <div class="modal-total">
+          <span>Total:</span>
+          <span class="total-price">
+            {{ (selectedProduct.base_price * selectedQuantity) | currency:selectedProduct.currency }}
+          </span>
+        </div>
+        <button class="btn btn-primary btn-add-to-cart-modal" (click)="addToCart()">
+          <i class="fa fa-cart-plus me-2"></i>
+          Agregar al carrito
+        </button>
+      </div>
     </div>
+  </div>
   }
 
   <!-- Footer -->
@@ -390,19 +370,19 @@
       <div class="footer-info">
         <h4>{{ businessInfo?.name || 'Mi Restaurante' }}</h4>
         @if (businessInfo?.address) {
-          <p class="footer-address">
-            <i class="fa fa-map-marker-alt me-2"></i>
-            {{ businessInfo.address }}
-          </p>
+        <p class="footer-address">
+          <i class="fa fa-map-marker-alt me-2"></i>
+          {{ businessInfo.address }}
+        </p>
         }
         @if (businessInfo?.phone) {
-          <p class="footer-phone">
-            <i class="fa fa-phone me-2"></i>
-            {{ businessInfo.phone }}
-          </p>
+        <p class="footer-phone">
+          <i class="fa fa-phone me-2"></i>
+          {{ businessInfo.phone }}
+        </p>
         }
       </div>
-      
+
       <div class="footer-powered">
         <p>Menú Digital por <strong>MenuGR</strong></p>
         <p class="footer-copyright">© {{ currentYear }} Todos los derechos reservados</p>
