@@ -1,227 +1,178 @@
-// Estilos específicos para el componente login
+/* -------------------- */
+/* Fondo general */
 :host {
-    background: linear-gradient(135deg, #1e1b2c, #2f2b44);
-    display: block;
-    width: 100%;
-    min-height: 100vh;
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  background: #e3e5f1; /* fondo oscuro neutro */
 }
 
-.bg-gradient-primary {
-    background: #2A9D8F;
-    color: #ffffffdc;
-}
-
-// Personalización del card
+/* -------------------- */
+/* Card principal */
 .card {
-    border-radius: 16px;
-    border: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 16px;
+  border: none;
+  background: #fff; /* card blanco */
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    }
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  }
 }
 
-// Personalización de inputs
-.form-control {
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-
-    &:focus {
-        border-color: #d4a017;
-        box-shadow: 0 0 0 0.25rem rgba(212, 160, 23, 0.25);
-    }
-
-    &.ng-invalid.ng-touched {
-        border-color: #E76F51;
-
-        &:focus {
-            box-shadow: 0 0 0 0.25rem rgba(231, 111, 81, 0.25);
-        }
-    }
-}
-
-
-// Personalización de botones
-.btn-primary {
-    background-color: #d4a017;
-    border-color: #d4a017;
-    color: #1e1b2c;
-    font-weight: 700;
-    transition: all 0.3s ease;
-
-    &:hover:not(:disabled) {
-        background-color: #ffc107;
-        border-color: #ffc107;
-        color: #1e1b2c;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(212, 160, 23, 0.4);
-    }
-
-    &:disabled {
-        opacity: 0.65;
-        cursor: not-allowed;
-    }
-}
-
-
-.btn-outline-primary {
-    color: #2A9D8F;
-    border-color: #2A9D8F;
-    transition: all 0.3s ease;
-
-    &:hover {
-        background-color: #2A9D8F;
-        border-color: #2A9D8F;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
-    }
-}
-
-// Responsive
-@media (max-width: 768px) {
-    .card-body {
-        padding: 1.5rem !important;
-    }
-
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-    }
-}
-
-// Animación para el spinner
-.fa-spinner {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.auth-link {
-    color: #d4a017;
-    font-weight: 600;
-    text-decoration: none;
-
-    &:hover {
-        color: #ffc107;
-        text-decoration: underline;
-    }
-}
-
-.back-home-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-
-    color: #ffffff;
-    font-weight: 600;
-    text-decoration: none;
-
-    padding: 10px 18px;
-    border-radius: 50px;
-
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(6px);
-
-    transition: all 0.3s ease;
-
-    &:hover {
-        background: rgba(255, 255, 255, 0.18);
-        transform: translateX(-4px);
-        color: #ffffff;
-    }
-}
-
-.btn-outline-primary {
-    color: #1e1b2c;
-    border-color: #d4a017;
-    font-weight: 600;
-
-    &:hover {
-        background-color: #d4a017;
-        border-color: #d4a017;
-        color: #1e1b2c;
-        box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
-    }
-}
-
+/* -------------------- */
+/* Header */
 .login-header {
-    background: linear-gradient(135deg, #1e1b2c, #2f2b44);
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
-    text-align: center;
-    box-shadow: inset 0 -5px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1e1b2c, #2f2b44);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  text-align: center;
+  padding: 2rem 1rem;
 }
 
+/* Logo + nombre */
 .logo-container {
-    width: 120px;
-    display: flex;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
 .logo-img {
-    width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  width: 48px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
+.logo-text {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #dcdde7; /* oscuro para logo text sobre card blanco */
+}
+
+/* Títulos */
 h2 {
-    color: #d4a017;
-    font-size: 1.9rem;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #06D6A0; /* verde vibrante, destacado */
+  margin-bottom: 0.5rem;
 }
 
 .text-light-subtle {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.95rem;
+  color: #6c757d; /* gris neutro */
+  font-size: 0.95rem;
 }
 
+/* -------------------- */
+/* Inputs */
+.form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 
+  &:focus {
+    border-color: #06D6A0;
+    box-shadow: 0 0 0 0.25rem rgba(6,214,160,0.25);
+  }
+
+  &.ng-invalid.ng-touched {
+    border-color: #EF476F; /* rojo suave */
+    &:focus {
+      box-shadow: 0 0 0 0.25rem rgba(239,71,111,0.25);
+    }
+  }
+
+  &::placeholder {
+    color: #adb5bd;
+  }
+}
+
+/* -------------------- */
+/* Botones */
+.btn-primary {
+  background-color: #06D6A0;
+  border-color: #06D6A0;
+  color: #fff;
+  font-weight: 700;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #118C73;
+    border-color: #118C73;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(6,214,160,0.5);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.btn-outline-primary {
+  color: #06D6A0;
+  border-color: #06D6A0;
+  font-weight: 600;
+
+  &:hover {
+    background-color: #06D6A0;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(6,214,160,0.3);
+  }
+}
+
+/* -------------------- */
+/* Enlaces */
+.auth-link { color: #06D6A0; &:hover { color: #118C73; text-decoration: underline; } }
+.back-home-link { color: #fff; &:hover { transform: translateX(-4px); } }
+
+/* -------------------- */
+/* WhatsApp Float */
 .whatsapp-float {
   position: fixed;
   bottom: 25px;
   right: 25px;
   z-index: 9999;
-
   display: flex;
   align-items: center;
   gap: 10px;
-
   background: #25D366;
   color: #fff;
   padding: 14px 18px;
   border-radius: 50px;
-
   font-size: 16px;
   font-weight: 600;
   text-decoration: none;
-
-  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+  box-shadow: 0 10px 30px rgba(37,211,102,0.5);
   transition: all 0.3s ease;
-
   animation: whatsapp-pulse 2.5s infinite;
 
-  i {
-    font-size: 28px;
-  }
+  i { font-size: 28px; }
+  .whatsapp-text { white-space: nowrap; }
 
-  .whatsapp-text {
-    white-space: nowrap;
-  }
+  &:hover { transform: translateY(-3px) scale(1.03); }
+}
 
-  &:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 12px 28px rgba(37, 211, 102, 0.6);
-    text-decoration: none;
-    color: #fff;
-  }
+@keyframes whatsapp-pulse { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,0.6); } 70% { box-shadow: 0 0 0 12px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
+
+/* -------------------- */
+/* Responsive */
+@media (max-width: 768px) {
+  .card-body { padding: 1.5rem !important; }
+  .btn-lg { padding: 0.75rem 1.5rem; font-size: 1rem; }
+  h2 { font-size: 1.6rem; }
+  .logo-text { font-size: 1.4rem; }
+}
+
+@media (max-width: 576px) {
+  h2 { font-size: 1.5rem; }
+  .logo-text { font-size: 1.2rem; }
+  .form-control { font-size: 0.95rem; padding: 0.65rem 1rem; }
+  .btn-primary { font-size: 0.95rem; padding: 0.65rem 1rem; }
+  .whatsapp-float { padding: 12px 14px; font-size: 14px; }
 }

@@ -70,35 +70,52 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  private loadBusinessData(): void {
-    this.isLoading = true;
-    
-    this.businessService.getBusiness().subscribe({
-      next: (business) => {
-        this.business = business;
-        this.patchFormWithBusiness(business);
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading business:', error);
-        this.toastr.error('Error al cargar la información del negocio');
-        this.isLoading = false;
-      }
-    });
-  }
+private loadBusinessData(): void {
+  this.isLoading = true;
 
-  private patchFormWithBusiness(business: Business): void {
-    this.settingsForm.patchValue({
-      name: business.name,
-      email: business.email,
-      phone: business.phone || '',
-      address: business.address || '',
-      city: business.city || '',
-      country: business.country || 'ES',
-      timezone: business.timezone || 'Europe/Madrid',
-      currency: business.currency || 'EUR'
-    });
-  }
+const storedBusiness = localStorage.getItem('currentBusiness');
+if (!storedBusiness) {
+  this.toastr.error('No se encontró el negocio actual');
+  this.isLoading = false;
+  return;
+}
+
+const business: Business = JSON.parse(storedBusiness);
+const currentBusinessId = business.id;
+
+  this.businessService.getBusiness({ id: currentBusinessId }).subscribe({
+    next: (business) => {
+      this.business = business;
+
+      // Guardar en localStorage por si se recarga la página
+      localStorage.setItem('currentBusiness', JSON.stringify(business));
+
+      this.patchFormWithBusiness(business);
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('Error loading business:', error);
+      this.toastr.error('Error al cargar la información del negocio');
+      this.isLoading = false;
+    }
+  });
+}
+
+
+private patchFormWithBusiness(business: Business): void {
+  this.settingsForm.patchValue({
+    name: business.name,
+    business_type: business.business_type,
+    email: business.email,
+    phone: business.phone || '',
+    address: business.address || '',
+    city: business.city || '',
+    country: business.country,
+    timezone: business.timezone,
+    currency: business.currency
+  });
+}
+
 
   setSection(section: string): void {
     this.currentSection = section;
@@ -127,17 +144,17 @@ export class SettingsComponent implements OnInit {
       business_type: this.business?.business_type || 'restaurant'
     };
 
-    this.businessService.updateBusiness(businessData).subscribe({
-      next: () => {
-        this.toastr.success('Configuración actualizada correctamente');
-        this.isSubmitting = false;
-      },
-      error: (error) => {
-        console.error('Error updating business:', error);
-        this.toastr.error('Error al actualizar la configuración');
-        this.isSubmitting = false;
-      }
-    });
+    // this.businessService.updateBusiness(businessData).subscribe({
+    //   next: () => {
+    //     this.toastr.success('Configuración actualizada correctamente');
+    //     this.isSubmitting = false;
+    //   },
+    //   error: (error) => {
+    //     console.error('Error updating business:', error);
+    //     this.toastr.error('Error al actualizar la configuración');
+    //     this.isSubmitting = false;
+    //   }
+    // });
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

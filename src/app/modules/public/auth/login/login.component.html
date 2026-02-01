@@ -3,67 +3,55 @@
     <div class="col-12 col-md-8 col-lg-6 col-xl-5">
       <div class="card border-0 shadow-lg rounded-3">
 
+        <!-- HEADER -->
         <div class="card-header login-header py-4 d-flex flex-column align-items-center">
-          <!-- Logo -->
-          <div class="logo-container mb-3">
+          <!-- Logo + nombre -->
+          <div class="logo-container mb-3 d-flex align-items-center gap-2">
             <img src="/assets/images/logo.png" alt="MenuQR Pro" class="logo-img">
+            <span class="logo-text">MenuQR</span>
           </div>
 
-          <!-- Título y subtítulo -->
           <h2 class="fw-bold mb-1">Iniciar Sesión</h2>
-          <p class="mb-0 text-light-subtle">Accede a tu cuenta MenuQR Pro y gestiona tu menú digital</p>
+          <p class="mb-0 text-light-subtle">Accede a tu cuenta y gestiona tu menú digital</p>
         </div>
 
+        <!-- FORM -->
         <div class="card-body p-4 p-md-5">
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <div class="mb-3">
               <label class="form-label fw-medium">Email</label>
               <input type="email" class="form-control rounded-2 py-3" formControlName="email"
-                placeholder="tu@restaurante.com">
-              @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
-              <div class="text-danger small mt-2">
+                     placeholder="tu@restaurante.com">
+              <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-danger small mt-2">
                 Email inválido
               </div>
-              }
             </div>
 
             <div class="mb-3">
               <label class="form-label fw-medium">Contraseña</label>
               <input type="password" class="form-control rounded-2 py-3" formControlName="password"
-                placeholder="••••••••">
-              @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
-              <div class="text-danger small mt-2">
+                     placeholder="••••••••">
+              <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-danger small mt-2">
                 La contraseña es requerida
               </div>
-              }
             </div>
 
             <div class="mb-3 form-check">
               <input type="checkbox" class="form-check-input" id="rememberMe">
-              <label class="form-check-label" for="rememberMe">
-                Recordarme
-              </label>
+              <label class="form-check-label" for="rememberMe">Recordarme</label>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 py-3 rounded-2 fw-bold mt-3"
-              [disabled]="loginForm.invalid || isLoading">
-              @if (!isLoading) {
-              <span>Iniciar Sesión</span>
-              }
-              @if (isLoading) {
-              <span>
-                <i class="fa fa-spinner fa-spin me-2"></i>
-                Iniciando...
-              </span>
-              }
+                    [disabled]="loginForm.invalid || isLoading">
+              <ng-container *ngIf="!isLoading">Iniciar Sesión</ng-container>
+              <ng-container *ngIf="isLoading">
+                <i class="fa fa-spinner fa-spin me-2"></i> Iniciando...
+              </ng-container>
             </button>
           </form>
 
           <div class="text-center mt-4">
-            <a routerLink="/forgot-password" class="auth-link">
-              ¿Olvidaste tu contraseña?
-            </a>
-
+            <a routerLink="/forgot-password" class="auth-link">¿Olvidaste tu contraseña?</a>
           </div>
 
           <hr class="my-4">
@@ -79,10 +67,8 @@
 
       <div class="text-center mt-4">
         <a routerLink="/" class="back-home-link">
-          <i class="fa fa-arrow-left me-2"></i>
-          Volver al inicio
+          <i class="fa fa-arrow-left me-2"></i> Volver al inicio
         </a>
-
       </div>
     </div>
   </div>
@@ -96,7 +82,5 @@
   aria-label="WhatsApp"
 >
   <i class="fa fa-whatsapp"></i>
-  <span class="whatsapp-text">
-    ¿Te ayudo a crear tu menú?
-  </span>
+  <span class="whatsapp-text">¿Te ayudo a crear tu menú?</span>
 </a>

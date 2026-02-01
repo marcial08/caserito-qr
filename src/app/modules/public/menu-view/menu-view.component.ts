@@ -190,25 +190,26 @@ export class MenuViewComponent implements OnInit, OnDestroy {
   }
 
   private loadBusinessInfoFallback(): void {
-    // Esto es solo para el dueño del negocio
-    this.businessService.getBusiness().subscribe({
-      next: (business) => {
-        // Verificar si el negocio del usuario coincide con el slug
-        if (business.slug === this.slug) {
-          this.businessInfo = business;
-          this.loadMenuForBusiness();
-        } else {
-          this.toastr.error('Negocio no encontrado', 'Error');
-          this.isLoading = false;
-        }
-      },
-      error: (error) => {
-        console.error('Error loading business info:', error);
-        this.toastr.error('Negocio no encontrado', 'Error');
-        this.isLoading = false;
-      }
-    });
+  this.isLoading = true;
+
+  const storedBusiness = localStorage.getItem('currentBusiness');
+  if (storedBusiness) {
+    const business = JSON.parse(storedBusiness);
+
+    // Verificar si coincide con el slug esperado
+    if (business.slug === this.slug) {
+      this.businessInfo = business;
+      this.loadMenuForBusiness(); // continuar con la carga del menú
+    } else {
+      this.toastr.error('Negocio no encontrado', 'Error');
+    }
+  } else {
+    this.toastr.error('No se encontró el negocio actual', 'Error');
   }
+
+  this.isLoading = false;
+}
+
 
   private loadMenuForBusiness(): void {
     // Cargar menú para el negocio específico

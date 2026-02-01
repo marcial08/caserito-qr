@@ -1,15 +1,27 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, BehaviorSubject, throwError } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { catchError, delay, map } from 'rxjs/operators';
 import { Business, BusinessFormData } from '../models/business.model';
 import { Category, Product } from '../models/menu.model';
 import { QRCode } from '../models/qr.model';
 import { PlanLimits, NumericLimits, PlanFeatures } from '../models/plan.model';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+export interface BusinessFilters {
+  business_id?: string;
+  is_active?: boolean;
+  search?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class BusinessService {
+
+    private apiUrl = 'http://localhost:3000/api/business';
+
+   
+
   private businessLimits = new BehaviorSubject<PlanLimits | null>(null);
   
   // Mock data
@@ -81,7 +93,7 @@ export class BusinessService {
     }
   ];
 
-  constructor() {
+  constructor(private http: HttpClient) {
     // Set mock limits (Professional plan) con nueva estructura
     this.businessLimits.next({
       numeric: {
@@ -97,35 +109,61 @@ export class BusinessService {
       }
     });
   }
-
-  getBusiness(): Observable<Business> {
-    const mockBusiness: Business = {
-      id: 'business-123',
-      name: 'Mi Restaurante',
-      slug: 'mi-restaurante',
-      business_type: 'restaurant', // Especificar el tipo literal
-      email: 'info@mirestaurante.com',
-      phone: '+1234567890',
-      address: 'Calle Principal 123',
-      city: 'Ciudad',
-      country: 'ES',
-      logo_url: 'https://via.placeholder.com/200x200',
-      cover_url: 'https://via.placeholder.com/1200x400',
-      timezone: 'Europe/Madrid',
-      currency: 'EUR',
-      is_active: true,
-      created_at: new Date(),
-      updated_at: new Date()
-    };
     
-    return of(mockBusiness).pipe(delay(500));
-  }
+      private getHeaders(): HttpHeaders {
+        return new HttpHeaders({
+          'Content-Type': 'application/json'
+          // Aquí puedes agregar headers de autenticación si los necesitas
+          // 'Authorization': `Bearer ${this.authService.getToken()}`
+        });
+      }
 
-  updateBusiness(data: BusinessFormData): Observable<Business> {
-    return this.getBusiness().pipe(
-      map(business => ({ ...business, ...data }))
-    );
-  }
+// Servicio
+getBusiness(filters: { id: string }): Observable<Business> {
+  return this.http.post<{ success: boolean; data: Business }>(
+    `${this.apiUrl}/get`,
+    filters,
+    { headers: this.getHeaders() }
+  ).pipe(
+    map(response => {
+      if (response.success && response.data) {
+        return { ...response.data };
+      }
+      throw new Error('No se encontró el negocio');
+    }),
+    catchError(this.handleError)
+  );
+}
+
+
+  // getBusiness(): Observable<Business> {
+  //   const mockBusiness: Business = {
+  //     id: 'business-123',
+  //     name: 'Mi Restaurante',
+  //     slug: 'mi-restaurante',
+  //     business_type: 'restaurant', // Especificar el tipo literal
+  //     email: 'info@mirestaurante.com',
+  //     phone: '+1234567890',
+  //     address: 'Calle Principal 123',
+  //     city: 'Ciudad',
+  //     country: 'ES',
+  //     logo_url: 'https://via.placeholder.com/200x200',
+  //     cover_url: 'https://via.placeholder.com/1200x400',
+  //     timezone: 'Europe/Madrid',
+  //     currency: 'EUR',
+  //     is_active: true,
+  //     created_at: new Date(),
+  //     updated_at: new Date()
+  //   };
+    
+  //   return of(mockBusiness).pipe(delay(500));
+  // }
+
+  // updateBusiness(data: BusinessFormData): Observable<Business> {
+  //   return this.getBusiness().pipe(
+  //     map(business => ({ ...business, ...data }))
+  //   );
+  // }
 
 
   
@@ -273,5 +311,28 @@ export class BusinessService {
   
   return of(mockCategories);
 }
+  private handleError(error: any): Observable<never> {
+    console.error('Error en CategoryService:', error);
+    
+    let errorMessage = 'Error desconocido';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Error del lado del cliente
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Error del lado del servidor
+      if (error.status === 0) {
+        errorMessage = 'No se pudo conectar con el servidor';
+      } else if (error.error && error.error.error) {
+        errorMessage = error.error.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = `Error ${error.status}: ${error.statusText}`;
+      }
+    }
+    
+    return throwError(() => new Error(errorMessage));
+  }
 
 }
